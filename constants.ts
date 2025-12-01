@@ -1,4 +1,6 @@
 
+
+
 import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus } from './types';
 
 export const INITIAL_ATTACHMENTS: Attachment[] = [
@@ -92,7 +94,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     region: '华东区',
     store: '上海物流中心',
     storageLocation: 'A区-01-02',
-    status: InventoryStatus.IN_STOCK
+    status: InventoryStatus.IN_STOCK,
+    specifications: '夹持范围: 250-1600mm, 承载: 3000kg'
   },
   {
     id: 'INV-002',
@@ -107,7 +110,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     region: '华北区',
     store: '北京分拨仓',
     storageLocation: 'B区-05-11',
-    status: InventoryStatus.RENTED
+    status: InventoryStatus.RENTED,
+    specifications: '侧移量: ±100mm, 宽度: 1200mm'
   },
   {
     id: 'INV-003',
@@ -122,7 +126,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     region: '华南区',
     store: '广州中转场',
     storageLocation: 'C区-12-01',
-    status: InventoryStatus.IN_TRANSIT
+    status: InventoryStatus.IN_TRANSIT,
+    specifications: '最大张开: 1900mm'
   },
   {
     id: 'INV-004',
@@ -137,7 +142,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     region: '华东区',
     store: '杭州仓',
     storageLocation: 'D区-02-05',
-    status: InventoryStatus.DISPOSED
+    status: InventoryStatus.DISPOSED,
+    specifications: '长度: 2400mm, 截面: 150x60mm'
   },
    {
     id: 'INV-005',
@@ -152,7 +158,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     region: '华西区',
     store: '成都物流园',
     storageLocation: 'E区-09-22',
-    status: InventoryStatus.LOSS
+    status: InventoryStatus.LOSS,
+    specifications: '适用砖块尺寸: 200-400mm'
   }
 ];
 
@@ -163,7 +170,8 @@ export const MOCK_HISTORY_LOGS: InventoryHistoryRecord[] = [
     type: InventoryHistoryType.INBOUND,
     date: '2022-03-15 09:30',
     operator: '张三',
-    details: '采购入库，验收合格'
+    details: '采购入库，验收合格',
+    referenceNumber: 'PO-20220310-001'
   },
   {
     id: 'LOG-002',
@@ -171,7 +179,8 @@ export const MOCK_HISTORY_LOGS: InventoryHistoryRecord[] = [
     type: InventoryHistoryType.STOCKTAKE,
     date: '2022-09-20 14:15',
     operator: '李四',
-    details: '季度盘点，账实相符'
+    details: '季度盘点，账实相符',
+    referenceNumber: 'ST-20220920-05'
   },
   {
     id: 'LOG-003',
@@ -179,7 +188,8 @@ export const MOCK_HISTORY_LOGS: InventoryHistoryRecord[] = [
     type: InventoryHistoryType.INBOUND,
     date: '2023-01-10 10:00',
     operator: '王五',
-    details: '整机随附入库'
+    details: '整机随附入库',
+    referenceNumber: 'EQ-FD30-8802' // Equipment Code
   },
   {
     id: 'LOG-004',
@@ -187,7 +197,8 @@ export const MOCK_HISTORY_LOGS: InventoryHistoryRecord[] = [
     type: InventoryHistoryType.TRANSFER,
     date: '2023-03-05 11:20',
     operator: '赵六',
-    details: '从 总部仓 调拨至 北京分拨仓'
+    details: '从 总部仓 调拨至 北京分拨仓',
+    referenceNumber: 'TR-20230305-02'
   },
   {
     id: 'LOG-005',
@@ -195,7 +206,8 @@ export const MOCK_HISTORY_LOGS: InventoryHistoryRecord[] = [
     type: InventoryHistoryType.INBOUND,
     date: '2021-06-20 08:45',
     operator: '孙七',
-    details: '采购入库'
+    details: '采购入库',
+    referenceNumber: 'PO-20210601-88'
   },
   {
     id: 'LOG-006',
@@ -203,7 +215,8 @@ export const MOCK_HISTORY_LOGS: InventoryHistoryRecord[] = [
     type: InventoryHistoryType.TRANSFER,
     date: '2022-01-15 13:30',
     operator: '周八',
-    details: '跨区调拨：华东 -> 华南'
+    details: '跨区调拨：华东 -> 华南',
+    referenceNumber: 'TR-20220115-09'
   }
 ];
 

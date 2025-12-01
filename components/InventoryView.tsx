@@ -1,8 +1,10 @@
 
+
+
 import React, { useState, useMemo } from 'react';
 import { InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus } from '../types';
 import { INITIAL_INVENTORY } from '../constants';
-import { Search, Filter, ChevronDown, MapPin, Download, History, X, ArrowRightLeft, ClipboardCheck, PackagePlus, PackageMinus, Store, Wallet, Calculator, LogOut, Save, CheckSquare, Square } from 'lucide-react';
+import { Search, Filter, ChevronDown, MapPin, Download, History, X, ArrowRightLeft, ClipboardCheck, PackagePlus, PackageMinus, Store, Wallet, Calculator, LogOut, Save, CheckSquare, Square, Ruler, FileText } from 'lucide-react';
 
 interface Props {
   inventoryItems: InventoryItem[];
@@ -195,6 +197,18 @@ export const InventoryView: React.FC<Props> = ({
       case InventoryHistoryType.STOCKTAKE: return 'text-orange-600 bg-orange-100';
       default: return 'text-slate-600 bg-slate-100';
     }
+  };
+
+  const getReferenceLabel = (type: InventoryHistoryType, source?: string) => {
+      if (type === InventoryHistoryType.INBOUND) {
+          return source === InventorySource.ATTACHED ? '设备编码' : '采购单号';
+      }
+      switch (type) {
+          case InventoryHistoryType.OUTBOUND: return '业务单据';
+          case InventoryHistoryType.TRANSFER: return '调拨单号';
+          case InventoryHistoryType.STOCKTAKE: return '盘点单号';
+          default: return '单据号';
+      }
   };
 
   const getInventoryStatusStyle = (status: InventoryStatus) => {
@@ -448,6 +462,7 @@ export const InventoryView: React.FC<Props> = ({
                             </button>
                         </th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">批次码 / 属具名称</th>
+                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">规格参数</th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">类目 / 来源</th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">区域 / 门店</th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">存放位置</th>
@@ -474,9 +489,19 @@ export const InventoryView: React.FC<Props> = ({
                                         )}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <div className="font-mono text-xs text-blue-600 mb-0.5">{item.batchCode}</div>
-                                    <div className="font-medium text-slate-900">{item.attachmentName}</div>
+                                <td className="px-6 py-4 max-w-[160px]">
+                                    <div className="font-mono text-xs text-blue-600 mb-0.5 truncate">{item.batchCode}</div>
+                                    <div className="font-medium text-slate-900 truncate" title={item.attachmentName}>{item.attachmentName}</div>
+                                </td>
+                                <td className="px-6 py-4 max-w-[180px]">
+                                    {item.specifications ? (
+                                        <div className="flex items-center gap-1.5 text-slate-700" title={item.specifications}>
+                                            <Ruler size={14} className="text-slate-400 flex-shrink-0" />
+                                            <span className="truncate">{item.specifications}</span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-slate-400 text-xs">-</span>
+                                    )}
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 mb-1">
@@ -484,8 +509,8 @@ export const InventoryView: React.FC<Props> = ({
                                     </span>
                                     <div className="text-xs text-slate-500">{item.source}</div>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <div className="text-slate-900 font-medium">{item.store}</div>
+                                <td className="px-6 py-4 max-w-[160px]">
+                                    <div className="text-slate-900 font-medium truncate" title={item.store}>{item.store}</div>
                                     <div className="mt-1">
                                         <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">{item.region}</span>
                                     </div>
@@ -526,7 +551,7 @@ export const InventoryView: React.FC<Props> = ({
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={10} className="px-6 py-12 text-center text-slate-400 bg-slate-50">
+                            <td colSpan={11} className="px-6 py-12 text-center text-slate-400 bg-slate-50">
                                 未找到符合条件的库存记录
                             </td>
                         </tr>
@@ -579,8 +604,14 @@ export const InventoryView: React.FC<Props> = ({
                             <span className="text-xs text-slate-400 font-mono">{log.date}</span>
                         </div>
                         <p className="text-sm text-slate-800 font-medium mt-1">{log.details}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className="text-xs text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">操作人: {log.operator}</span>
+                            {log.referenceNumber && (
+                                <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 font-mono flex items-center gap-1">
+                                    <FileText size={10} />
+                                    {getReferenceLabel(log.type, selectedHistoryItem.source)}: {log.referenceNumber}
+                                </span>
+                            )}
                         </div>
                       </div>
                     </div>

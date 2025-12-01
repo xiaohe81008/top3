@@ -51,6 +51,7 @@ export interface InventoryHistoryRecord {
   date: string;
   operator: string;
   details: string; // Description of the change
+  referenceNumber?: string; // e.g. PO Number, Order ID, Equipment Code
 }
 
 export interface Attachment {
@@ -85,6 +86,7 @@ export interface InventoryItem {
   store: string; // 门店
   storageLocation: string; // 存放地
   status: InventoryStatus; // 库存状态
+  specifications?: string; // 规格参数
 }
 
 export interface StocktakeItem {
