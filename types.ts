@@ -143,4 +143,40 @@ export interface TransferOrder {
   items: TransferItem[];
 }
 
-export type ViewState = 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE' | 'TRANSFER';
+export interface SeriesParameter {
+  id: string;
+  name: string; // 字段名称
+  dataType: string; // 数据类型: 数字, 选项, 文本
+  options: string; // 选择项枚举值
+  unit: string; // 单位
+  isRequired: boolean; // 是否必填
+  status: '生效' | '失效'; // 生效状态
+}
+
+export interface SeriesAttachment {
+  id: string;
+  name: string; // 属具名称
+  category: string; // 属具分类 (e.g. 货叉型属具)
+  materialCategory: string; // 关联物料类目 (e.g. 侧移器, 软包夹)
+  options: string; // 选择项枚举值 (e.g. 1520, 1630)
+  status: '生效' | '失效';
+}
+
+export interface Series {
+  id: string;
+  name: string; // 系列名称
+  code: string; // 系列编码
+  category: string; // 所属品类
+  createTime: string; // 创建时间
+  creator: string; // 创建人
+  remarks?: string; // 备注
+  
+  // Extended Fields
+  powerSource?: string; // 动力源
+  configurationParameters?: SeriesParameter[]; // 配置参数列表 (New)
+  attachments?: SeriesAttachment[]; // 属具信息列表 (New)
+  parameters?: SeriesParameter[]; // 常用参数列表
+  keyParameter?: string; // 关键参数名称
+}
+
+export type ViewState = 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE' | 'TRANSFER' | 'SERIES';

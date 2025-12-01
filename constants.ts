@@ -1,7 +1,5 @@
 
-
-
-import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus } from './types';
+import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus, Series } from './types';
 
 export const INITIAL_ATTACHMENTS: Attachment[] = [
   {
@@ -79,6 +77,16 @@ export const FORK_TYPES = [
 export const CLAMP_TYPES = [
   '纸箱夹', '纸卷夹', '软包夹', '烟叶箱夹', '载荷稳定器', '液压式桶夹', '其他'
 ];
+
+export const ATTACHMENT_CATEGORIES: Record<string, string[]> = {
+  '货叉型属具': ['圆杆叉', '叉套', '加长叉', '折叠货叉', '砖叉', '调距叉', '侧移叉'],
+  '夹持类属具': ['纸箱夹', '纸卷夹', '软包夹', '烟叶箱夹', '载荷稳定器', '液压式桶夹'],
+  '旋转类属具': ['旋转器', '旋转抱夹'],
+  '推出式属具': ['推出器', '推拉器', '前移叉'],
+  '起吊类属具': ['起重臂', '集装箱吊具'],
+  '箱斗式属具': ['倾翻斗', '铲斗'],
+  '其它类属具': ['串杆', '带护臂挡货架']
+};
 
 export const INITIAL_INVENTORY: InventoryItem[] = [
   {
@@ -299,5 +307,66 @@ export const MOCK_TRANSFER_ORDERS: TransferOrder[] = [
         netValue: 450.00
       }
     ]
+  }
+];
+
+export const INITIAL_SERIES: Series[] = [
+  {
+    id: 'SER-001',
+    name: '电动平衡重',
+    code: '16',
+    category: '工业车辆设备',
+    createTime: '2024-04-24 18:35:00',
+    creator: '沈成意',
+    remarks: '--',
+    powerSource: '电动',
+    keyParameter: '额定负载',
+    configurationParameters: [
+      { id: 'cp1', name: '门架', dataType: '选项', options: '二节,三节', unit: '--', isRequired: true, status: '生效' },
+      { id: 'cp2', name: '电池容量', dataType: '数字', options: '--', unit: 'Ah', isRequired: true, status: '生效' },
+      { id: 'cp3', name: '轮胎', dataType: '选项', options: '实心,充气', unit: '--', isRequired: true, status: '生效' }
+    ],
+    attachments: [
+      { id: 'att1', name: '侧移器', category: '货叉型属具', materialCategory: '侧移器', options: '1520, 1630', status: '生效' },
+      { id: 'att2', name: '纸卷夹', category: '夹持类属具', materialCategory: '纸卷夹', options: '--', status: '生效' },
+      { id: 'att3', name: '侧移叉', category: '货叉型属具', materialCategory: '货叉', options: '1800, 2000', status: '生效' }
+    ],
+    parameters: [
+      { id: 'p1', name: '平台高度', dataType: '数字', options: '--', unit: 'm', isRequired: true, status: '生效' },
+      { id: 'p2', name: '设备自重', dataType: '数字', options: '--', unit: 'kg', isRequired: true, status: '生效' },
+      { id: 'p3', name: '车型大小', dataType: '选项', options: '大车,小车', unit: '--', isRequired: true, status: '生效' },
+      { id: 'p4', name: '设备经营类型', dataType: '选项', options: '普通设备,特种设备', unit: '--', isRequired: true, status: '失效' },
+      { id: 'p5', name: '设备尺寸长', dataType: '数字', options: '--', unit: 'm', isRequired: false, status: '失效' },
+      { id: 'p6', name: '设备尺寸宽', dataType: '数字', options: '--', unit: 'm', isRequired: false, status: '失效' },
+      { id: 'p7', name: '设备尺寸高', dataType: '数字', options: '--', unit: 'm', isRequired: false, status: '失效' },
+      { id: 'p8', name: '实际最大举升高度', dataType: '数字', options: '--', unit: 'm', isRequired: false, status: '失效' },
+      { id: 'p9', name: '额定负载', dataType: '数字', options: '--', unit: 'kg', isRequired: true, status: '生效' }
+    ]
+  },
+  {
+    id: 'SER-002',
+    name: '内燃平衡重',
+    code: '17',
+    category: '工业车辆设备',
+    createTime: '2024-04-24 18:35:00',
+    creator: '沈成意',
+    remarks: '--',
+    powerSource: '柴油',
+    configurationParameters: [],
+    attachments: [],
+    parameters: []
+  },
+  {
+    id: 'SER-003',
+    name: '仓储叉车',
+    code: '18',
+    category: '工业车辆设备',
+    createTime: '2024-05-10 09:15:00',
+    creator: '李四',
+    remarks: '主要用于室内仓库',
+    powerSource: '电动',
+    configurationParameters: [],
+    attachments: [],
+    parameters: []
   }
 ];

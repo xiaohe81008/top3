@@ -10,6 +10,7 @@ import { DetailView } from './components/DetailView';
 import { InventoryView } from './components/InventoryView';
 import { StocktakeView } from './components/StocktakeView';
 import { TransferView } from './components/TransferView';
+import { SeriesView } from './components/SeriesView';
 import { Plus, Filter, ChevronRight, Search, ChevronDown } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -65,6 +66,8 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (view) {
+      case 'SERIES':
+        return <SeriesView />;
       case 'TRANSFER':
         return (
           <TransferView 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Package, Truck, LogOut, ClipboardList, ClipboardCheck, ArrowRightLeft } from 'lucide-react';
+import { Package, Truck, LogOut, ClipboardList, ClipboardCheck, ArrowRightLeft, Layers } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface SidebarProps {
@@ -14,6 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
   const isInventoryActive = currentView === 'INVENTORY';
   const isStocktakeActive = currentView === 'STOCKTAKE';
   const isTransferActive = currentView === 'TRANSFER';
+  const isSeriesActive = currentView === 'SERIES';
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-slate-900 text-white fixed left-0 top-0 overflow-y-auto z-50">
@@ -51,6 +52,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
           label="属具盘点" 
           active={isStocktakeActive} 
           onClick={() => onViewChange('STOCKTAKE')}
+        />
+        <NavItem 
+          icon={<Layers size={20} />} 
+          label="系列管理" 
+          active={isSeriesActive} 
+          onClick={() => onViewChange('SERIES')}
         />
       </nav>
 
