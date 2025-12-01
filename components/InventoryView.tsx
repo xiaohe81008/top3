@@ -1,19 +1,31 @@
 
 import React, { useState, useMemo } from 'react';
-import { InventoryItem, InventorySource, AttachmentCategory, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus } from '../types';
-import { INITIAL_INVENTORY, MOCK_HISTORY_LOGS } from '../constants';
-import { Search, Filter, ChevronDown, MapPin, Download, History, X, Truck, ArrowRightLeft, ClipboardCheck, PackagePlus, PackageMinus, Store, Wallet, Calculator, LogOut, Save } from 'lucide-react';
+import { InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus } from '../types';
+import { INITIAL_INVENTORY } from '../constants';
+import { Search, Filter, ChevronDown, MapPin, Download, History, X, ArrowRightLeft, ClipboardCheck, PackagePlus, PackageMinus, Store, Wallet, Calculator, LogOut, Save, CheckSquare, Square } from 'lucide-react';
 
-export const InventoryView: React.FC = () => {
+interface Props {
+  inventoryItems: InventoryItem[];
+  setInventoryItems: (items: InventoryItem[]) => void;
+  historyLogs: InventoryHistoryRecord[];
+  setHistoryLogs: (logs: InventoryHistoryRecord[]) => void;
+}
+
+export const InventoryView: React.FC<Props> = ({ 
+  inventoryItems, 
+  setInventoryItems, 
+  historyLogs, 
+  setHistoryLogs 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSource, setFilterSource] = useState<string>('ALL');
   const [filterRegion, setFilterRegion] = useState<string>('ALL');
   const [filterStore, setFilterStore] = useState<string>('ALL');
   
-  // Data State
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(INITIAL_INVENTORY);
-  const [historyLogs, setHistoryLogs] = useState<InventoryHistoryRecord[]>(MOCK_HISTORY_LOGS);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<InventoryItem | null>(null);
+
+  // Selection State
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
   // Outbound Modal State
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
@@ -22,6 +34,16 @@ export const InventoryView: React.FC = () => {
     type: 'RENT', // RENT, DISPOSE, TRANSFER
     date: new Date().toISOString().split('T')[0],
     target: '',
+    remarks: ''
+  });
+
+  // Bulk Transfer Modal State
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferFormData, setTransferFormData] = useState({
+    targetRegion: '',
+    targetStore: '',
+    date: new Date().toISOString().split('T')[0],
+    settlementAmount: 0,
     remarks: ''
   });
 
@@ -78,6 +100,81 @@ export const InventoryView: React.FC = () => {
     });
     return stats;
   }, [filteredData]);
+
+  // --- Selection Logic ---
+  const toggleSelection = (id: string) => {
+    setSelectedItemIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItemIds.length === filteredData.length) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(filteredData.map(i => i.id));
+    }
+  };
+
+  // --- Bulk Transfer Logic ---
+  const selectedItemsForTransfer = useMemo(() => 
+    inventoryItems.filter(i => selectedItemIds.includes(i.id)), 
+  [inventoryItems, selectedItemIds]);
+
+  const totalTransferNetValue = useMemo(() => 
+    selectedItemsForTransfer.reduce((sum, item) => sum + item.netValue, 0),
+  [selectedItemsForTransfer]);
+
+  // Get distinct source stores
+  const sourceStores = useMemo(() => 
+    [...new Set(selectedItemsForTransfer.map(i => i.store))],
+  [selectedItemsForTransfer]);
+
+  // Unique Target Options (Mock list + filter out sources if needed)
+  const allStores = useMemo(() => [...new Set(INITIAL_INVENTORY.map(i => i.store)), '新仓库A', '新仓库B'], []);
+
+  const handleOpenTransferModal = () => {
+    setTransferFormData({
+        targetRegion: '',
+        targetStore: '',
+        date: new Date().toISOString().split('T')[0],
+        settlementAmount: totalTransferNetValue, // Default to Net Value
+        remarks: ''
+    });
+    setIsTransferModalOpen(true);
+  };
+
+  const handleSubmitTransfer = () => {
+    if (!transferFormData.targetStore) return;
+
+    // 1. Update Items
+    const updatedItems = inventoryItems.map(item => {
+        if (selectedItemIds.includes(item.id)) {
+            return {
+                ...item,
+                status: InventoryStatus.IN_TRANSIT, // Mark as In Transit
+            };
+        }
+        return item;
+    });
+    setInventoryItems(updatedItems);
+
+    // 2. Create Logs
+    const newLogs = selectedItemsForTransfer.map(item => ({
+        id: `LOG-${Date.now()}-${item.id}`,
+        inventoryId: item.id,
+        type: InventoryHistoryType.TRANSFER,
+        date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+        operator: '管理员',
+        details: `批量调拨: 从 [${item.store}] 调拨至 [${transferFormData.targetStore}]。结算金额分摊: ¥${(transferFormData.settlementAmount / selectedItemsForTransfer.length).toFixed(2)}。`
+    }));
+
+    setHistoryLogs([...newLogs, ...historyLogs]);
+
+    // 3. Reset
+    setIsTransferModalOpen(false);
+    setSelectedItemIds([]);
+  };
 
 
   const getHistoryIcon = (type: InventoryHistoryType) => {
@@ -196,6 +293,15 @@ export const InventoryView: React.FC = () => {
           <p className="text-slate-500 mt-1">实时监控全网属具库存状态、折旧及资产价值。</p>
         </div>
         <div className="flex items-center gap-3">
+            {selectedItemIds.length > 0 && (
+                <button 
+                    onClick={handleOpenTransferModal}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors shadow-md shadow-indigo-500/20 animate-in fade-in slide-in-from-top-2"
+                >
+                    <ArrowRightLeft size={18} />
+                    <span>批量调拨 ({selectedItemIds.length})</span>
+                </button>
+            )}
             <button 
                 onClick={handleOpenOutboundGlobal}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-md shadow-blue-500/20"
@@ -332,6 +438,15 @@ export const InventoryView: React.FC = () => {
             <table className="w-full text-sm text-left text-slate-500 border-collapse">
                 <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200 sticky top-0 z-20 shadow-sm">
                     <tr>
+                        <th className="px-6 py-4 w-12 bg-slate-50 text-center">
+                            <button onClick={toggleSelectAll} className="flex items-center justify-center text-slate-400 hover:text-slate-600">
+                                {selectedItemIds.length > 0 && selectedItemIds.length === filteredData.length ? (
+                                    <CheckSquare size={18} className="text-blue-600" />
+                                ) : (
+                                    <Square size={18} />
+                                )}
+                            </button>
+                        </th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">批次码 / 属具名称</th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">类目 / 来源</th>
                         <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">区域 / 门店</th>
@@ -346,7 +461,19 @@ export const InventoryView: React.FC = () => {
                 <tbody className="divide-y divide-slate-100">
                     {filteredData.length > 0 ? (
                         filteredData.map((item) => (
-                            <tr key={item.id} className="bg-white hover:bg-slate-50 transition-colors">
+                            <tr 
+                                key={item.id} 
+                                className={`transition-colors ${selectedItemIds.includes(item.id) ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-slate-50'}`}
+                            >
+                                <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                    <button onClick={() => toggleSelection(item.id)} className="flex items-center justify-center text-slate-400 hover:text-slate-600">
+                                        {selectedItemIds.includes(item.id) ? (
+                                            <CheckSquare size={18} className="text-blue-600" />
+                                        ) : (
+                                            <Square size={18} />
+                                        )}
+                                    </button>
+                                </td>
                                 <td className="px-6 py-4">
                                     <div className="font-mono text-xs text-blue-600 mb-0.5">{item.batchCode}</div>
                                     <div className="font-medium text-slate-900">{item.attachmentName}</div>
@@ -399,7 +526,7 @@ export const InventoryView: React.FC = () => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={9} className="px-6 py-12 text-center text-slate-400 bg-slate-50">
+                            <td colSpan={10} className="px-6 py-12 text-center text-slate-400 bg-slate-50">
                                 未找到符合条件的库存记录
                             </td>
                         </tr>
@@ -572,6 +699,140 @@ export const InventoryView: React.FC = () => {
                     >
                         <Save size={18} />
                         确认出库
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Bulk Transfer Modal */}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-slate-200 flex flex-col max-h-[90vh]">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 rounded-t-xl">
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800">属具批量调拨</h3>
+                        <p className="text-xs text-slate-500 mt-1">
+                            已选择 {selectedItemsForTransfer.length} 项资产
+                        </p>
+                    </div>
+                    <button onClick={() => setIsTransferModalOpen(false)} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
+                     {/* 1. Header Config */}
+                    <div className="grid grid-cols-2 gap-4">
+                         <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">调出仓库 (来源)</label>
+                            <div className="p-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-700 font-medium truncate">
+                                {sourceStores.join(', ')}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">调拨日期</label>
+                            <input
+                                type="date"
+                                className="w-full rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                value={transferFormData.date}
+                                onChange={(e) => setTransferFormData({...transferFormData, date: e.target.value})}
+                            />
+                        </div>
+                        <div className="col-span-2">
+                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">调入仓库 (目标)</label>
+                             <div className="relative">
+                                 <Store className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                                <select 
+                                    className="w-full rounded-lg border-slate-300 border pl-9 pr-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
+                                    value={transferFormData.targetStore}
+                                    onChange={(e) => setTransferFormData({...transferFormData, targetStore: e.target.value})}
+                                >
+                                    <option value="">请选择调入仓库...</option>
+                                    {allStores.filter(s => !sourceStores.includes(s)).map(store => (
+                                        <option key={store} value={store}>{store}</option>
+                                    ))}
+                                </select>
+                             </div>
+                        </div>
+                    </div>
+
+                    {/* 2. Items List */}
+                    <div>
+                        <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+                            <span>调拨资产明细</span>
+                            <span className="text-xs font-normal text-slate-500">总净值: ¥{totalTransferNetValue.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span>
+                        </h4>
+                        <div className="border border-slate-200 rounded-lg overflow-hidden max-h-48 overflow-y-auto">
+                            <table className="w-full text-xs text-left">
+                                <thead className="bg-slate-50 text-slate-500 sticky top-0">
+                                    <tr>
+                                        <th className="px-3 py-2 font-medium">编号</th>
+                                        <th className="px-3 py-2 font-medium">名称</th>
+                                        <th className="px-3 py-2 font-medium">存放位置</th>
+                                        <th className="px-3 py-2 font-medium text-right">净值</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {selectedItemsForTransfer.map(item => (
+                                        <tr key={item.id}>
+                                            <td className="px-3 py-2 font-mono text-slate-600">{item.batchCode}</td>
+                                            <td className="px-3 py-2 text-slate-800">{item.attachmentName}</td>
+                                            <td className="px-3 py-2 text-slate-500">{item.storageLocation}</td>
+                                            <td className="px-3 py-2 text-right font-medium text-slate-700">¥{item.netValue.toLocaleString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                     {/* 3. Financials */}
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                         <div className="flex items-center justify-between">
+                             <label className="text-sm font-medium text-slate-700">当前总净值</label>
+                             <span className="text-sm font-bold text-slate-900">¥ {totalTransferNetValue.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span>
+                         </div>
+                         <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">本次调拨结算金额 (¥)</label>
+                            <input
+                                type="number"
+                                className="w-full rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-right"
+                                placeholder="请输入金额"
+                                value={transferFormData.settlementAmount}
+                                onChange={(e) => setTransferFormData({...transferFormData, settlementAmount: Number(e.target.value)})}
+                            />
+                            <p className="text-xs text-slate-500 mt-1">默认为资产当前账面净值，可根据实际调拨协议修改。</p>
+                        </div>
+                    </div>
+
+                    {/* 4. Remarks */}
+                    <div>
+                         <label className="block text-sm font-medium text-slate-700 mb-1">备注</label>
+                         <textarea
+                            className="w-full rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-sm"
+                            rows={2}
+                            placeholder="填写调拨原因或物流单号..."
+                            value={transferFormData.remarks}
+                            onChange={(e) => setTransferFormData({...transferFormData, remarks: e.target.value})}
+                        />
+                    </div>
+                </div>
+
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 rounded-b-xl">
+                    <button 
+                        onClick={() => setIsTransferModalOpen(false)}
+                        className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 transition-colors"
+                    >
+                        取消
+                    </button>
+                    <button 
+                        onClick={handleSubmitTransfer}
+                        disabled={!transferFormData.targetStore}
+                        className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ArrowRightLeft size={18} />
+                        确认调拨
                     </button>
                 </div>
             </div>

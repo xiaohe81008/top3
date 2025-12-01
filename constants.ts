@@ -1,5 +1,5 @@
 
-import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus } from './types';
+import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus } from './types';
 
 export const INITIAL_ATTACHMENTS: Attachment[] = [
   {
@@ -233,5 +233,58 @@ export const MOCK_STOCKTAKE_ORDERS: StocktakeOrder[] = [
     totalItems: 12,
     abnormalItems: 1,
     items: []
+  }
+];
+
+export const MOCK_TRANSFER_ORDERS: TransferOrder[] = [
+  {
+    id: 'TR-20231028-005',
+    transferNumber: 'TR-20231028-005',
+    sourceRegion: '华东区',
+    sourceStore: '上海物流中心',
+    targetRegion: '华北区',
+    targetStore: '北京分拨仓',
+    status: TransferStatus.IN_TRANSIT,
+    createDate: '2023-10-28 14:30',
+    creator: '管理员',
+    totalItems: 3,
+    totalAmount: 18500.00,
+    remarks: '季度调拨，补充北京仓库存。',
+    items: [
+      {
+        inventoryId: 'INV-001',
+        batchCode: 'BAT-20230315-01',
+        attachmentName: '重型纸卷夹',
+        netValue: 12500.00
+      },
+      {
+        inventoryId: 'INV-003',
+        batchCode: 'BAT-20210620-11',
+        attachmentName: '软包夹',
+        netValue: 6000.00
+      }
+    ]
+  },
+  {
+    id: 'TR-20231020-002',
+    transferNumber: 'TR-20231020-002',
+    sourceRegion: '华东区',
+    sourceStore: '杭州仓',
+    targetRegion: '华东区',
+    targetStore: '上海物流中心',
+    status: TransferStatus.COMPLETED,
+    createDate: '2023-10-20 09:15',
+    creator: '张三',
+    totalItems: 1,
+    totalAmount: 450.00,
+    remarks: '退回中心仓。',
+    items: [
+      {
+        inventoryId: 'INV-004',
+        batchCode: 'BAT-20201105-03',
+        attachmentName: '加长货叉',
+        netValue: 450.00
+      }
+    ]
   }
 ];

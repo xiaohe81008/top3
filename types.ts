@@ -37,6 +37,13 @@ export enum StocktakeStatus {
   CANCELLED = '已取消'
 }
 
+export enum TransferStatus {
+  PENDING = '待处理',
+  IN_TRANSIT = '运输中',
+  COMPLETED = '已完成',
+  CANCELLED = '已取消'
+}
+
 export interface InventoryHistoryRecord {
   id: string;
   inventoryId: string; // Link to InventoryItem
@@ -111,4 +118,27 @@ export interface StocktakeOrder {
   items: StocktakeItem[];
 }
 
-export type ViewState = 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE';
+export interface TransferItem {
+  inventoryId: string;
+  batchCode: string;
+  attachmentName: string;
+  netValue: number;
+}
+
+export interface TransferOrder {
+  id: string;
+  transferNumber: string; // e.g., TR-20231028-005
+  sourceRegion: string;
+  sourceStore: string;
+  targetRegion: string;
+  targetStore: string;
+  status: TransferStatus;
+  createDate: string;
+  creator: string;
+  totalItems: number;
+  totalAmount: number;
+  remarks?: string;
+  items: TransferItem[];
+}
+
+export type ViewState = 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE' | 'TRANSFER';

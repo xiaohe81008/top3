@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { StocktakeOrder, StocktakeStatus, StocktakeItem, InventoryStatus, AttachmentCategory } from '../types';
 import { MOCK_STOCKTAKE_ORDERS, INITIAL_INVENTORY } from '../constants';
-import { Plus, Search, Calendar, ChevronRight, FileText, X, Save, AlertTriangle, CheckCircle, Package, ArrowLeft, Filter, ScanLine, Upload, FileSpreadsheet, PlusCircle, RefreshCw } from 'lucide-react';
+import { Plus, Search, Calendar, ChevronRight, FileText, X, Save, AlertTriangle, CheckCircle, Package, ArrowLeft, Filter, ScanLine, Upload, FileSpreadsheet, PlusCircle, RefreshCw, User, MapPin } from 'lucide-react';
 
 export const StocktakeView: React.FC = () => {
   const [mode, setMode] = useState<'LIST' | 'CREATE' | 'EXECUTE' | 'DETAIL'>('LIST');
@@ -200,7 +200,17 @@ export const StocktakeView: React.FC = () => {
                 o.store.includes(searchTerm)
               ).map(order => (
                 <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-mono font-medium text-slate-900">{order.orderNumber}</td>
+                  <td className="px-6 py-4">
+                      <button 
+                        onClick={() => {
+                            setCurrentOrder(order);
+                            setMode('DETAIL');
+                        }}
+                        className="font-mono font-medium text-blue-600 hover:underline text-left"
+                      >
+                        {order.orderNumber}
+                      </button>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="text-slate-900 font-medium">{order.store}</div>
                     <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded mt-1 inline-block">{order.region}</span>
@@ -230,15 +240,27 @@ export const StocktakeView: React.FC = () => {
                     <div className="text-xs text-slate-500 mt-1 pl-6">by {order.creator}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button 
-                        onClick={() => {
-                            setCurrentOrder(order);
-                            setMode('DETAIL');
-                        }}
-                        className="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-full transition-colors"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
+                    {order.status === StocktakeStatus.IN_PROGRESS ? (
+                        <button 
+                            onClick={() => {
+                                setCurrentOrder(order);
+                                setMode('EXECUTE');
+                            }}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-xs px-3 py-1 bg-blue-50 rounded-full"
+                        >
+                        继续盘点
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => {
+                                setCurrentOrder(order);
+                                setMode('DETAIL');
+                            }}
+                            className="text-slate-400 hover:text-blue-600 p-2 hover:bg-slate-100 rounded-full transition-colors"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -317,8 +339,176 @@ export const StocktakeView: React.FC = () => {
   );
 
   const renderDetail = () => {
-    // Re-use logic for Detail view if needed, but for now focusing on Execute view
-    return renderList(); // Placeholder, Detail view code exists in previous state if not overwritten
+    if (!currentOrder) return null;
+
+    // Calculate stats
+    const totalCount = currentOrder.items.length;
+    const surplusCount = currentOrder.items.filter(i => i.isSurplus).length;
+    const lossCount = currentOrder.items.filter(i => !i.isSurplus && i.actualStatus === InventoryStatus.LOSS).length;
+    // Verified means confirmed presence (either normal match or mismatch but confirmed). 
+    // Usually 'Matched' means system == actual.
+    const matchedCount = currentOrder.items.filter(i => !i.isSurplus && i.systemStatus === i.actualStatus).length;
+    const abnormalCount = currentOrder.abnormalItems;
+
+    return (
+        <div className="space-y-6">
+             {/* Header */}
+             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={() => {
+                            setCurrentOrder(null);
+                            setMode('LIST');
+                        }}
+                        className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-slate-900">盘点单详情</h2>
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(currentOrder.status)}`}>
+                                {currentOrder.status}
+                            </span>
+                        </div>
+                        <p className="text-slate-500 mt-1 font-mono">{currentOrder.orderNumber}</p>
+                    </div>
+                </div>
+                
+                {currentOrder.status === StocktakeStatus.IN_PROGRESS && (
+                     <button 
+                        onClick={() => setMode('EXECUTE')}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm flex items-center gap-2"
+                    >
+                        <ScanLine size={18} />
+                        继续盘点
+                    </button>
+                )}
+             </div>
+
+             {/* Info Cards */}
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">仓库 / 门店</p>
+                        <p className="text-lg font-bold text-slate-900 mt-1">{currentOrder.store}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{currentOrder.region}</p>
+                    </div>
+                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                        <MapPin size={20} />
+                    </div>
+                </div>
+                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">创建信息</p>
+                        <p className="text-lg font-bold text-slate-900 mt-1">{currentOrder.creator}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{currentOrder.createDate}</p>
+                    </div>
+                    <div className="p-2 bg-slate-50 rounded-lg text-slate-600">
+                        <User size={20} />
+                    </div>
+                </div>
+                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">完成日期</p>
+                        <p className="text-lg font-bold text-slate-900 mt-1">{currentOrder.finishDate || '-'}</p>
+                    </div>
+                    <div className="p-2 bg-slate-50 rounded-lg text-slate-600">
+                        <Calendar size={20} />
+                    </div>
+                </div>
+                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">差异统计</p>
+                        <p className={`text-lg font-bold mt-1 ${abnormalCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {abnormalCount} <span className="text-xs font-normal text-slate-500">项异常</span>
+                        </p>
+                        <div className="flex gap-2 mt-1 text-[10px]">
+                            <span className="text-blue-600 bg-blue-50 px-1 rounded">盈 {surplusCount}</span>
+                            <span className="text-red-600 bg-red-50 px-1 rounded">亏 {lossCount}</span>
+                        </div>
+                    </div>
+                    <div className={`p-2 rounded-lg ${abnormalCount > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                        {abnormalCount > 0 ? <AlertTriangle size={20} /> : <CheckCircle size={20} />}
+                    </div>
+                </div>
+             </div>
+
+             {/* Items Table */}
+             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-800">盘点明细</h3>
+                    <div className="text-sm text-slate-500">
+                        共 {totalCount} 项记录
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-slate-500">
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th className="px-6 py-3 font-semibold">资产序列号</th>
+                                <th className="px-6 py-3 font-semibold">资产名称</th>
+                                <th className="px-6 py-3 font-semibold">账面位置</th>
+                                <th className="px-6 py-3 font-semibold">账面状态</th>
+                                <th className="px-6 py-3 font-semibold">实盘状态</th>
+                                <th className="px-6 py-3 font-semibold">结果</th>
+                                <th className="px-6 py-3 font-semibold">备注</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {currentOrder.items.map((item, idx) => {
+                                const isAbnormal = item.systemStatus !== item.actualStatus || item.isSurplus;
+                                const isLoss = !item.isSurplus && item.actualStatus === InventoryStatus.LOSS;
+                                const isSurplus = item.isSurplus;
+                                
+                                let rowClass = "hover:bg-slate-50 transition-colors";
+                                if (isSurplus) rowClass = "bg-blue-50/50 hover:bg-blue-50";
+                                else if (isLoss) rowClass = "bg-red-50/50 hover:bg-red-50";
+                                else if (isAbnormal) rowClass = "bg-orange-50/50 hover:bg-orange-50";
+
+                                return (
+                                    <tr key={idx} className={rowClass}>
+                                        <td className="px-6 py-4 font-mono font-medium text-slate-900">
+                                            {item.batchCode}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {item.attachmentName}
+                                            {item.isSurplus && <span className="ml-2 text-[10px] bg-blue-100 text-blue-700 px-1 rounded">盘盈新增</span>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {item.storageLocation}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {item.systemStatus || <span className="text-slate-400">-</span>}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-slate-900">
+                                            {item.actualStatus}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {isSurplus ? (
+                                                <span className="text-blue-600 font-bold text-xs">盘盈</span>
+                                            ) : isLoss ? (
+                                                 <span className="text-red-600 font-bold text-xs">盘亏</span>
+                                            ) : isAbnormal ? (
+                                                 <span className="text-orange-600 font-bold text-xs">状态不符</span>
+                                            ) : (
+                                                 <span className="text-green-600 font-bold text-xs flex items-center gap-1">
+                                                     <CheckCircle size={12} /> 正常
+                                                 </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-500 max-w-xs truncate">
+                                            {item.remarks || '-'}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+             </div>
+        </div>
+    );
   };
 
   const renderExecute = () => {

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Package, Settings, PieChart, Truck, LogOut, ClipboardList, ClipboardCheck } from 'lucide-react';
+import { Package, Truck, LogOut, ClipboardList, ClipboardCheck, ArrowRightLeft } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface SidebarProps {
@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
   const isAttachmentActive = ['LIST', 'DETAIL', 'CREATE', 'EDIT'].includes(currentView);
   const isInventoryActive = currentView === 'INVENTORY';
   const isStocktakeActive = currentView === 'STOCKTAKE';
+  const isTransferActive = currentView === 'TRANSFER';
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-slate-900 text-white fixed left-0 top-0 overflow-y-auto z-50">
@@ -22,17 +23,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight">EquipMaster</h1>
-          <p className="text-xs text-slate-400">设备资产管理 CRM</p>
+          <p className="text-xs text-slate-400">属具资产管理</p>
         </div>
       </div>
 
       <nav className="flex-1 py-6 px-3 space-y-1">
-        <NavItem 
-          icon={<LayoutDashboard size={20} />} 
-          label="工作台" 
-          active={false} 
-          onClick={() => {}} 
-        />
         <NavItem 
           icon={<Package size={20} />} 
           label="属具管理" 
@@ -46,22 +41,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
           onClick={() => onViewChange('INVENTORY')}
         />
         <NavItem 
+          icon={<ArrowRightLeft size={20} />} 
+          label="属具调拨" 
+          active={isTransferActive} 
+          onClick={() => onViewChange('TRANSFER')}
+        />
+        <NavItem 
           icon={<ClipboardCheck size={20} />} 
           label="属具盘点" 
           active={isStocktakeActive} 
           onClick={() => onViewChange('STOCKTAKE')}
-        />
-        <NavItem 
-          icon={<PieChart size={20} />} 
-          label="数据分析" 
-          active={false} 
-          onClick={() => {}}
-        />
-        <NavItem 
-          icon={<Settings size={20} />} 
-          label="系统设置" 
-          active={false} 
-          onClick={() => {}}
         />
       </nav>
 

@@ -3,12 +3,13 @@ import React, { useState, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { StatusBadge } from './components/StatusBadge';
-import { Attachment, ViewState, AttachmentCategory } from './types';
-import { INITIAL_ATTACHMENTS } from './constants';
+import { Attachment, ViewState, AttachmentCategory, InventoryItem, InventoryHistoryRecord } from './types';
+import { INITIAL_ATTACHMENTS, INITIAL_INVENTORY, MOCK_HISTORY_LOGS } from './constants';
 import { AttachmentForm } from './components/AttachmentForm';
 import { DetailView } from './components/DetailView';
 import { InventoryView } from './components/InventoryView';
 import { StocktakeView } from './components/StocktakeView';
+import { TransferView } from './components/TransferView';
 import { Plus, Filter, ChevronRight, Search, ChevronDown } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -17,6 +18,10 @@ const App: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
+
+  // Lifted State for Inventory and History to share between InventoryView and TransferView
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(INITIAL_INVENTORY);
+  const [historyLogs, setHistoryLogs] = useState<InventoryHistoryRecord[]>(MOCK_HISTORY_LOGS);
 
   // Derived state
   const selectedAttachment = useMemo(() => 
@@ -60,10 +65,26 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (view) {
+      case 'TRANSFER':
+        return (
+          <TransferView 
+            inventoryItems={inventoryItems}
+            setInventoryItems={setInventoryItems}
+            historyLogs={historyLogs}
+            setHistoryLogs={setHistoryLogs}
+          />
+        );
       case 'STOCKTAKE':
         return <StocktakeView />;
       case 'INVENTORY':
-        return <InventoryView />;
+        return (
+          <InventoryView 
+            inventoryItems={inventoryItems}
+            setInventoryItems={setInventoryItems}
+            historyLogs={historyLogs}
+            setHistoryLogs={setHistoryLogs}
+          />
+        );
       case 'CREATE':
         return (
           <AttachmentForm 
