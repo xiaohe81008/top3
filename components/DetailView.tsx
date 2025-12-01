@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Attachment } from '../types';
 import { StatusBadge } from './StatusBadge';
-import { Edit2, ArrowLeft, Trash2, Calendar, Scale, Ruler, Building, Tag } from 'lucide-react';
+import { Edit2, ArrowLeft, Trash2, Calendar, Scale, Ruler, Building, Tag, Truck } from 'lucide-react';
 
 interface Props {
   data: Attachment;
@@ -105,6 +106,15 @@ export const DetailView: React.FC<Props> = ({ data, onBack, onEdit, onDelete }) 
                     <div>
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">型号</label>
                         <p className="mt-1 text-base text-slate-900 font-medium">{data.modelNumber}</p>
+                    </div>
+                    <div>
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1">
+                             <Truck size={14} />
+                             适配车系
+                        </label>
+                        <p className="mt-1 text-base text-blue-700 bg-blue-50 px-2 py-0.5 rounded inline-block font-medium">
+                            {data.compatibleSeries || '未指定'}
+                        </p>
                     </div>
                     <div>
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">供应商</label>

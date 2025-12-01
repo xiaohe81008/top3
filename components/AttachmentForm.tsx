@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Attachment, AttachmentCategory, AttachmentStatus } from '../types';
 import { FORK_TYPES, CLAMP_TYPES } from '../constants';
@@ -22,7 +23,8 @@ export const AttachmentForm: React.FC<Props> = ({ initialData, onSave, onCancel 
     depreciationYears: 5,
     purchaseDate: new Date().toISOString().split('T')[0],
     status: AttachmentStatus.EFFECTIVE,
-    remarks: ''
+    remarks: '',
+    compatibleSeries: '内燃平衡重'
   });
 
   const [subTypeOptions, setSubTypeOptions] = useState<string[]>(FORK_TYPES);
@@ -138,6 +140,19 @@ export const AttachmentForm: React.FC<Props> = ({ initialData, onSave, onCancel 
               <span className="w-1 h-4 bg-orange-500 rounded-full"></span>
               技术规格
             </h3>
+          </div>
+
+          <div className="space-y-1">
+             <label className="block text-sm font-medium text-slate-700">适配车系</label>
+             <select
+              value={formData.compatibleSeries}
+              onChange={e => handleChange('compatibleSeries', e.target.value)}
+              className="w-full rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+            >
+              <option value="内燃平衡重">内燃平衡重</option>
+              <option value="电动平衡重">电动平衡重</option>
+              <option value="全系列通用">全系列通用</option>
+            </select>
           </div>
 
            <div className="space-y-1">

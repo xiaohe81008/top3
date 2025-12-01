@@ -61,6 +61,7 @@ export interface Attachment {
   status: AttachmentStatus; // 状态
   remarks?: string; // 备注
   imageUrl?: string; // 图片链接
+  compatibleSeries?: string; // 适配车系 (e.g. 内燃平衡重, 电动平衡重)
 }
 
 export interface InventoryItem {

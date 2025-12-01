@@ -16,7 +16,8 @@ export const INITIAL_ATTACHMENTS: Attachment[] = [
     purchaseDate: '2022-03-15',
     status: AttachmentStatus.EFFECTIVE,
     remarks: '主仓库一号叉车使用，状况良好。',
-    imageUrl: 'https://picsum.photos/400/300?random=1'
+    imageUrl: 'https://picsum.photos/400/300?random=1',
+    compatibleSeries: '内燃平衡重'
   },
   {
     id: 'ATT-2023-002',
@@ -31,7 +32,8 @@ export const INITIAL_ATTACHMENTS: Attachment[] = [
     depreciationYears: 8,
     purchaseDate: '2023-01-10',
     status: AttachmentStatus.EFFECTIVE,
-    imageUrl: 'https://picsum.photos/400/300?random=2'
+    imageUrl: 'https://picsum.photos/400/300?random=2',
+    compatibleSeries: '电动平衡重'
   },
   {
     id: 'ATT-2021-045',
@@ -47,7 +49,8 @@ export const INITIAL_ATTACHMENTS: Attachment[] = [
     purchaseDate: '2021-06-20',
     status: AttachmentStatus.EFFECTIVE,
     remarks: '液压油管轻微渗漏，等待维修配件。',
-    imageUrl: 'https://picsum.photos/400/300?random=3'
+    imageUrl: 'https://picsum.photos/400/300?random=3',
+    compatibleSeries: '内燃平衡重'
   },
   {
     id: 'ATT-2020-012',
@@ -62,7 +65,8 @@ export const INITIAL_ATTACHMENTS: Attachment[] = [
     depreciationYears: 3,
     purchaseDate: '2020-11-05',
     status: AttachmentStatus.EXPIRED,
-    imageUrl: 'https://picsum.photos/400/300?random=4'
+    imageUrl: 'https://picsum.photos/400/300?random=4',
+    compatibleSeries: '全系列通用'
   }
 ];
 
