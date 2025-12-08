@@ -1,10 +1,8 @@
 
-
-
 import React, { useState, useMemo } from 'react';
 import { InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus } from '../types';
 import { INITIAL_INVENTORY } from '../constants';
-import { Search, Filter, ChevronDown, MapPin, Download, History, X, ArrowRightLeft, ClipboardCheck, PackagePlus, PackageMinus, Store, Wallet, Calculator, LogOut, Save, CheckSquare, Square, Ruler, FileText } from 'lucide-react';
+import { Search, Filter, ChevronDown, MapPin, Download, History, X, ArrowRightLeft, ClipboardCheck, PackagePlus, PackageMinus, Store, Wallet, Calculator, LogOut, Save, CheckSquare, Square, Ruler, FileText, MoreHorizontal } from 'lucide-react';
 
 interface Props {
   inventoryItems: InventoryItem[];
@@ -59,6 +57,7 @@ export const InventoryView: React.FC<Props> = ({
     return inventoryItems.filter(item => {
       const matchesSearch = 
         item.batchCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.factoryCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.attachmentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.store.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -295,7 +294,6 @@ export const InventoryView: React.FC<Props> = ({
   };
 
   // Prepare available assets for outbound (e.g., currently In Stock)
-  // For prototype, let's allow all, but ideally filter by InventoryStatus.IN_STOCK
   const availableAssetsForOutbound = inventoryItems.filter(i => i.status === InventoryStatus.IN_STOCK);
 
   return (
@@ -378,7 +376,7 @@ export const InventoryView: React.FC<Props> = ({
             <input
                 type="text"
                 className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg bg-slate-50 focus:bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                placeholder="搜索批次码、属具名称、门店..."
+                placeholder="搜索批次码、原厂编码、属具名称..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -448,11 +446,11 @@ export const InventoryView: React.FC<Props> = ({
 
       {/* Inventory Table Container */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col">
-        <div className="overflow-auto max-h-[calc(100vh-28rem)] custom-scrollbar">
+        <div className="overflow-auto max-h-[calc(100vh-22rem)] custom-scrollbar">
             <table className="w-full text-sm text-left text-slate-500 border-collapse">
-                <thead className="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+                <thead className="text-xs text-slate-600 uppercase bg-slate-50/90 backdrop-blur border-b border-slate-200 sticky top-0 z-20 shadow-sm font-bold tracking-wider">
                     <tr>
-                        <th className="px-6 py-4 w-12 bg-slate-50 text-center">
+                        <th className="px-4 py-4 w-12 bg-slate-50 text-center sticky left-0 z-30 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)] border-r border-slate-200">
                             <button onClick={toggleSelectAll} className="flex items-center justify-center text-slate-400 hover:text-slate-600">
                                 {selectedItemIds.length > 0 && selectedItemIds.length === filteredData.length ? (
                                     <CheckSquare size={18} className="text-blue-600" />
@@ -461,16 +459,17 @@ export const InventoryView: React.FC<Props> = ({
                                 )}
                             </button>
                         </th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">批次码 / 属具名称</th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">规格参数</th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">类目 / 来源</th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">区域 / 门店</th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">存放位置</th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">状态</th>
-                        <th className="px-6 py-4 font-semibold whitespace-nowrap bg-slate-50">时间信息</th>
-                        <th className="px-6 py-4 font-semibold text-right whitespace-nowrap bg-slate-50">净值 (¥)</th>
-                        <th className="px-6 py-4 font-semibold text-right whitespace-nowrap bg-slate-50">日折旧 (¥)</th>
-                        <th className="px-6 py-4 font-semibold text-right whitespace-nowrap bg-slate-50">操作</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[180px]">批次码 / 属具名称</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[120px]">原厂编码</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[150px]">规格参数</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[100px]">类目 / 来源</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[140px]">区域 / 门店</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[100px]">存放位置</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[90px]">状态</th>
+                        <th className="px-4 py-4 font-semibold whitespace-nowrap min-w-[150px]">时间信息</th>
+                        <th className="px-4 py-4 font-semibold text-right whitespace-nowrap min-w-[100px]">净值 (¥)</th>
+                        <th className="px-4 py-4 font-semibold text-right whitespace-nowrap min-w-[100px]">日折旧 (¥)</th>
+                        <th className="px-4 py-4 font-semibold text-right whitespace-nowrap min-w-[100px]">操作</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -478,9 +477,9 @@ export const InventoryView: React.FC<Props> = ({
                         filteredData.map((item) => (
                             <tr 
                                 key={item.id} 
-                                className={`transition-colors ${selectedItemIds.includes(item.id) ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-slate-50'}`}
+                                className={`transition-all duration-150 group ${selectedItemIds.includes(item.id) ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-slate-50'}`}
                             >
-                                <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                <td className="px-4 py-3 text-center sticky left-0 z-20 bg-inherit border-r border-slate-100 group-hover:border-slate-200" onClick={(e) => e.stopPropagation()}>
                                     <button onClick={() => toggleSelection(item.id)} className="flex items-center justify-center text-slate-400 hover:text-slate-600">
                                         {selectedItemIds.includes(item.id) ? (
                                             <CheckSquare size={18} className="text-blue-600" />
@@ -489,61 +488,73 @@ export const InventoryView: React.FC<Props> = ({
                                         )}
                                     </button>
                                 </td>
-                                <td className="px-6 py-4 max-w-[160px]">
-                                    <div className="font-mono text-xs text-blue-600 mb-0.5 truncate">{item.batchCode}</div>
-                                    <div className="font-medium text-slate-900 truncate" title={item.attachmentName}>{item.attachmentName}</div>
+                                <td className="px-4 py-3">
+                                    <div className="font-bold text-slate-900 text-sm" title={item.attachmentName}>{item.attachmentName}</div>
+                                    <div className="font-mono text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                                        <span className="bg-slate-100 px-1 rounded text-[10px]">ID</span>
+                                        {item.batchCode}
+                                    </div>
                                 </td>
-                                <td className="px-6 py-4 max-w-[180px]">
+                                <td className="px-4 py-3">
+                                    <div className="font-mono text-xs text-slate-600">{item.factoryCode || '-'}</div>
+                                </td>
+                                <td className="px-4 py-3">
                                     {item.specifications ? (
-                                        <div className="flex items-center gap-1.5 text-slate-700" title={item.specifications}>
-                                            <Ruler size={14} className="text-slate-400 flex-shrink-0" />
-                                            <span className="truncate">{item.specifications}</span>
+                                        <div className="flex items-start gap-1 text-slate-700 max-w-[140px]" title={item.specifications}>
+                                            <Ruler size={13} className="text-slate-400 flex-shrink-0 mt-0.5" />
+                                            <span className="text-xs truncate">{item.specifications}</span>
                                         </div>
                                     ) : (
                                         <span className="text-slate-400 text-xs">-</span>
                                     )}
                                 </td>
-                                <td className="px-6 py-4">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 mb-1">
+                                <td className="px-4 py-3">
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-800 mb-1 border border-slate-200 whitespace-nowrap">
                                         {item.category}
                                     </span>
                                     <div className="text-xs text-slate-500">{item.source}</div>
                                 </td>
-                                <td className="px-6 py-4 max-w-[160px]">
-                                    <div className="text-slate-900 font-medium truncate" title={item.store}>{item.store}</div>
-                                    <div className="mt-1">
-                                        <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">{item.region}</span>
+                                <td className="px-4 py-3">
+                                    <div className="text-slate-900 font-medium text-xs truncate max-w-[130px]" title={item.store}>{item.store}</div>
+                                    <div className="mt-0.5">
+                                        <span className="text-[10px] bg-slate-100 text-slate-600 px-1 py-px rounded border border-slate-200">{item.region}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <span className="text-xs font-mono font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200 flex items-center gap-1 w-fit">
-                                        <MapPin size={10} className="text-orange-500" />
+                                <td className="px-4 py-3">
+                                    <span className="text-xs font-mono font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 flex items-center gap-1 w-fit">
+                                        <MapPin size={10} className="text-slate-400" />
                                         {item.storageLocation}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4">
-                                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ring-1 ring-inset ${getInventoryStatusStyle(item.status)}`}>
+                                <td className="px-4 py-3">
+                                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ring-1 ring-inset ${getInventoryStatusStyle(item.status)}`}>
                                       {item.status}
                                    </span>
                                 </td>
-                                <td className="px-6 py-4">
-                                    <div className="text-slate-900">持有 {item.holdingDays} 天</div>
-                                    <div className="text-xs text-slate-500">入库: {item.firstInboundDate}</div>
+                                <td className="px-4 py-3">
+                                    <div className="text-slate-900 text-xs">持有 <span className="font-semibold">{item.holdingDays}</span> 天</div>
+                                    <div className="text-[10px] text-slate-500 mt-0.5">入库: {item.firstInboundDate}</div>
                                 </td>
-                                <td className="px-6 py-4 text-right font-medium text-slate-900">
-                                    {item.netValue.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                                <td className="px-4 py-3 text-right">
+                                    <div className="font-bold text-slate-900 text-sm">{item.netValue.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
                                 </td>
-                                <td className="px-6 py-4 text-right text-slate-600">
+                                <td className="px-4 py-3 text-right text-slate-600 text-xs">
                                     {item.dailyDepreciation.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                                 </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end gap-2">
+                                <td className="px-4 py-3 text-right">
+                                    <div className="flex items-center justify-end gap-1">
                                         <button 
                                             onClick={() => setSelectedHistoryItem(item)}
-                                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded transition-colors text-xs font-medium inline-flex items-center gap-1"
+                                            className="text-slate-500 hover:text-blue-600 hover:bg-blue-50 p-1.5 rounded-full transition-colors"
+                                            title="查看履历"
                                         >
-                                            <History size={14} />
-                                            履历
+                                            <History size={15} />
+                                        </button>
+                                        <button 
+                                            className="text-slate-500 hover:text-slate-800 hover:bg-slate-100 p-1.5 rounded-full transition-colors"
+                                            title="更多操作"
+                                        >
+                                            <MoreHorizontal size={15} />
                                         </button>
                                     </div>
                                 </td>
@@ -551,7 +562,7 @@ export const InventoryView: React.FC<Props> = ({
                         ))
                     ) : (
                         <tr>
-                            <td colSpan={11} className="px-6 py-12 text-center text-slate-400 bg-slate-50">
+                            <td colSpan={12} className="px-6 py-12 text-center text-slate-400 bg-slate-50">
                                 未找到符合条件的库存记录
                             </td>
                         </tr>

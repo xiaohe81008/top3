@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Package, Truck, LogOut, ClipboardList, ClipboardCheck, ArrowRightLeft, Layers } from 'lucide-react';
+import { Package, Truck, LogOut, ClipboardList, ClipboardCheck, ArrowRightLeft, Layers, LayoutDashboard, ShoppingCart, FileCheck } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface SidebarProps {
@@ -15,6 +15,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
   const isStocktakeActive = currentView === 'STOCKTAKE';
   const isTransferActive = currentView === 'TRANSFER';
   const isSeriesActive = currentView === 'SERIES';
+  const isDashboardActive = currentView === 'DASHBOARD';
+  const isRequirementActive = currentView === 'REQUIREMENT';
+  const isApprovalActive = currentView === 'APPROVAL';
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-slate-900 text-white fixed left-0 top-0 overflow-y-auto z-50">
@@ -30,10 +33,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
 
       <nav className="flex-1 py-6 px-3 space-y-1">
         <NavItem 
-          icon={<Package size={20} />} 
-          label="属具管理" 
-          active={isAttachmentActive} 
-          onClick={() => onViewChange('LIST')}
+          icon={<LayoutDashboard size={20} />} 
+          label="工作台" 
+          active={isDashboardActive} 
+          onClick={() => onViewChange('DASHBOARD')}
+        />
+        <NavItem 
+          icon={<ShoppingCart size={20} />} 
+          label="需求单" 
+          active={isRequirementActive} 
+          onClick={() => onViewChange('REQUIREMENT')}
         />
         <NavItem 
           icon={<ClipboardList size={20} />} 
@@ -58,6 +67,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
           label="系列管理" 
           active={isSeriesActive} 
           onClick={() => onViewChange('SERIES')}
+        />
+        <NavItem 
+          icon={<Package size={20} />} 
+          label="属具管理" 
+          active={isAttachmentActive} 
+          onClick={() => onViewChange('LIST')}
+        />
+        <NavItem 
+          icon={<FileCheck size={20} />} 
+          label="审批记录" 
+          active={isApprovalActive} 
+          onClick={() => onViewChange('APPROVAL')}
         />
       </nav>
 

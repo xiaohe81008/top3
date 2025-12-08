@@ -1,5 +1,5 @@
 
-import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus, Series } from './types';
+import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus, Series, RequirementOrder, RequirementStatus, ApprovalRecord } from './types';
 
 export const INITIAL_ATTACHMENTS: Attachment[] = [
   {
@@ -92,6 +92,7 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   {
     id: 'INV-001',
     batchCode: 'BAT-20230315-01',
+    factoryCode: '3473280947',
     attachmentName: '重型纸卷夹',
     category: AttachmentCategory.CLAMP,
     firstInboundDate: '2022-03-15',
@@ -108,6 +109,7 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   {
     id: 'INV-002',
     batchCode: 'BAT-20230110-05',
+    factoryCode: '5829104432',
     attachmentName: '侧移器',
     category: AttachmentCategory.FORK,
     firstInboundDate: '2023-01-10',
@@ -124,6 +126,7 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   {
     id: 'INV-003',
     batchCode: 'BAT-20210620-11',
+    factoryCode: '1938472201',
     attachmentName: '软包夹',
     category: AttachmentCategory.CLAMP,
     firstInboundDate: '2021-06-20',
@@ -140,6 +143,7 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   {
     id: 'INV-004',
     batchCode: 'BAT-20201105-03',
+    factoryCode: '9081726354',
     attachmentName: '加长货叉',
     category: AttachmentCategory.FORK,
     firstInboundDate: '2020-11-05',
@@ -156,6 +160,7 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
    {
     id: 'INV-005',
     batchCode: 'BAT-20230801-02',
+    factoryCode: '6758493021',
     attachmentName: '砖叉',
     category: AttachmentCategory.FORK,
     firstInboundDate: '2023-08-01',
@@ -368,5 +373,323 @@ export const INITIAL_SERIES: Series[] = [
     configurationParameters: [],
     attachments: [],
     parameters: []
+  }
+];
+
+export const MOCK_REQUIREMENT_ORDERS: RequirementOrder[] = [
+  {
+    id: '1',
+    requestNumber: 'SSQ25120300030',
+    quantity: 2,
+    equipmentInfo: '电动托盘车-3000千克',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-06',
+    deliveryLocation: '山东省济宁市兖...',
+    requestStore: '青岛叉车服务中心',
+    receiveStore: '青岛叉车服务中心',
+    receiveWarehouse: '青岛叉车仓'
+  },
+  {
+    id: '2',
+    requestNumber: 'SSQ25120300022',
+    quantity: 1,
+    equipmentInfo: '电动平衡重-3000千克x1',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2026-01-01',
+    deliveryLocation: '上海市闵行区颛...',
+    requestStore: '上海叉车服务中心',
+    receiveStore: '上海叉车服务中心',
+    receiveWarehouse: '上海叉车仓'
+  },
+  {
+    id: '3',
+    requestNumber: 'SSQ25120200025',
+    quantity: 3,
+    equipmentInfo: '套筒型升降车-9.2米x3',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-05',
+    deliveryLocation: '忠清北道清州市...',
+    requestStore: '清州服务中心',
+    receiveStore: '清州服务中心',
+    receiveWarehouse: '韩国清州仓'
+  },
+  {
+    id: '4',
+    requestNumber: 'SSQ25120100054',
+    quantity: 4,
+    equipmentInfo: '电动直臂-26米x4',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-04',
+    deliveryLocation: '忠清北道清州市...',
+    requestStore: '清州服务中心',
+    receiveStore: '清州服务中心',
+    receiveWarehouse: '韩国清州仓'
+  },
+  {
+    id: '5',
+    requestNumber: 'SSQ25120100053',
+    quantity: 6,
+    equipmentInfo: '电动曲臂-14米x2, 电动...',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-04',
+    deliveryLocation: '忠清北道清州市...',
+    requestStore: '清州服务中心',
+    receiveStore: '清州服务中心',
+    receiveWarehouse: '韩国清州仓'
+  },
+  {
+    id: '6',
+    requestNumber: 'SSQ25120100051',
+    quantity: 34,
+    equipmentInfo: '剪叉-6米x34',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-04',
+    deliveryLocation: '忠清北道清州市...',
+    requestStore: '清州服务中心',
+    receiveStore: '清州服务中心',
+    receiveWarehouse: '韩国清州仓'
+  },
+  {
+    id: '7',
+    requestNumber: 'SSQ25120100050',
+    quantity: 16,
+    equipmentInfo: '剪叉-6米x16',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-04',
+    deliveryLocation: '山东省威海市荣...',
+    requestStore: '华城服务中心',
+    receiveStore: '华城服务中心',
+    receiveWarehouse: '韩国华城配件仓'
+  },
+  {
+    id: '8',
+    requestNumber: 'SSQ25113000006',
+    quantity: 10,
+    equipmentInfo: '电动直臂-20米x10',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-12-10',
+    deliveryLocation: '浙江省宁波市海...',
+    requestStore: '宁波服务中心',
+    receiveStore: '宁波服务中心',
+    receiveWarehouse: '宁波仓'
+  },
+  {
+    id: '9',
+    requestNumber: 'SSQ25112400028',
+    quantity: 2,
+    equipmentInfo: '电动直臂-20米x2',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-11-27',
+    deliveryLocation: '江苏省如东县长...',
+    requestStore: '南通第二服务中心',
+    receiveStore: '南通第二服务中心',
+    receiveWarehouse: '如东仓库'
+  },
+  {
+    id: '10',
+    requestNumber: 'SSQ25111700033',
+    quantity: 22,
+    equipmentInfo: '剪叉-14米x3,剪叉-16...',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-11-30',
+    deliveryLocation: '沙特区域达曼市',
+    requestStore: '达曼服务中心',
+    receiveStore: '达曼服务中心',
+    receiveWarehouse: '沙特达曼仓'
+  },
+  {
+    id: '11',
+    requestNumber: 'SSQ25110400027',
+    quantity: 2,
+    equipmentInfo: '剪叉-10米x2',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-11-07',
+    deliveryLocation: '浙江省衢州市柯...',
+    requestStore: '测试衢州服务中心',
+    receiveStore: '测试衢州服务中心',
+    receiveWarehouse: '衢州仓'
+  },
+  {
+    id: '12',
+    requestNumber: 'SSQ25110400010',
+    quantity: 2,
+    equipmentInfo: '电动直臂-20米x2',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-11-07',
+    deliveryLocation: '浙江省杭州市临...',
+    requestStore: '杭州余杭服务中心',
+    receiveStore: '杭州余杭服务中心',
+    receiveWarehouse: '余杭仓'
+  },
+  {
+    id: '13',
+    requestNumber: 'SSQ25102700054',
+    quantity: 1,
+    equipmentInfo: '剪叉-10米x1',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-10-30',
+    deliveryLocation: '浙江省衢州市柯...',
+    requestStore: '测试衢州服务中心',
+    receiveStore: '测试衢州服务中心',
+    receiveWarehouse: '衢州仓'
+  },
+  {
+    id: '14',
+    requestNumber: 'SSQ25101100010',
+    quantity: 2,
+    equipmentInfo: '电动平衡重-1600千克x2',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-10-31',
+    deliveryLocation: '重庆市市辖区九...',
+    requestStore: '重庆叉车服务中心',
+    receiveStore: '重庆叉车服务中心',
+    receiveWarehouse: '重庆叉车仓'
+  },
+  {
+    id: '15',
+    requestNumber: 'SSQ25100700012',
+    quantity: 1,
+    equipmentInfo: '电动直臂-32米x1',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-10-12',
+    deliveryLocation: '广西壮族自治区...',
+    requestStore: '城投华铁钦州服...',
+    receiveStore: '城投华铁钦州服...',
+    receiveWarehouse: '城投钦州仓'
+  },
+  {
+    id: '16',
+    requestNumber: 'SSQ25093000013',
+    quantity: 2,
+    equipmentInfo: '电动直臂-20米x2',
+    status: RequirementStatus.APPROVED,
+    requiredDate: '2025-10-03',
+    deliveryLocation: '河南省开封市龙...',
+    requestStore: '商丘服务中心',
+    receiveStore: '商丘服务中心',
+    receiveWarehouse: '开封仓'
+  }
+];
+
+export const MOCK_APPROVAL_RECORDS: ApprovalRecord[] = [
+  {
+    id: '1',
+    title: '设备采购申请',
+    approvalNumber: '2025120713261862...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700007',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '赵俊',
+    submitTime: '2025-12-07 13:26:18',
+    startTime: '2025-12-07 13:26:18'
+  },
+  {
+    id: '2',
+    title: '设备采购申请',
+    approvalNumber: '202512071302253...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700006',
+    status: '审批拒绝',
+    tenant: '浙江大黄蜂',
+    submitter: '郑幸幸',
+    submitTime: '2025-12-07 13:02:25',
+    startTime: '2025-12-07 13:02:25'
+  },
+  {
+    id: '3',
+    title: '设备采购申请',
+    approvalNumber: '2025120712254941...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700005',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '孙贤明',
+    submitTime: '2025-12-07 12:25:49',
+    startTime: '2025-12-07 12:25:49'
+  },
+  {
+    id: '4',
+    title: '设备采购申请',
+    approvalNumber: '202512071222256...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700004',
+    status: '审批拒绝',
+    tenant: '浙江大黄蜂',
+    submitter: '潘华健',
+    submitTime: '2025-12-07 12:22:25',
+    startTime: '2025-12-07 12:22:25'
+  },
+  {
+    id: '5',
+    title: '设备采购申请',
+    approvalNumber: '2025120712180328...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700003',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '孙贤明',
+    submitTime: '2025-12-07 12:18:03',
+    startTime: '2025-12-07 12:18:03'
+  },
+  {
+    id: '6',
+    title: '设备采购申请',
+    approvalNumber: '202512070941420...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700002',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '陈强',
+    submitTime: '2025-12-07 09:41:42',
+    startTime: '2025-12-07 09:41:42'
+  },
+  {
+    id: '7',
+    title: '设备采购申请',
+    approvalNumber: '202512070924188...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120700001',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '林君超',
+    submitTime: '2025-12-07 09:24:18',
+    startTime: '2025-12-07 09:24:18'
+  },
+  {
+    id: '8',
+    title: '设备采购申请',
+    approvalNumber: '202512062104553...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120600037',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '郝薪程',
+    submitTime: '2025-12-06 21:04:55',
+    startTime: '2025-12-06 21:04:55'
+  },
+  {
+    id: '9',
+    title: '设备采购申请',
+    approvalNumber: '2025120617304281...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120600036',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '郑幸幸',
+    submitTime: '2025-12-06 17:30:42',
+    startTime: '2025-12-06 17:30:42'
+  },
+  {
+    id: '10',
+    title: '设备采购申请',
+    approvalNumber: '2025120617215443...',
+    businessType: '设备采购申请',
+    businessNumber: 'SSQ25120600035',
+    status: '审批通过',
+    tenant: '浙江大黄蜂',
+    submitter: '郑幸幸',
+    submitTime: '2025-12-06 17:21:55',
+    startTime: '2025-12-06 17:21:55'
   }
 ];

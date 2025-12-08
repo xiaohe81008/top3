@@ -11,10 +11,13 @@ import { InventoryView } from './components/InventoryView';
 import { StocktakeView } from './components/StocktakeView';
 import { TransferView } from './components/TransferView';
 import { SeriesView } from './components/SeriesView';
+import { Dashboard } from './components/Dashboard';
+import { RequirementView } from './components/RequirementView';
+import { ApprovalRecordView } from './components/ApprovalRecordView';
 import { Plus, Filter, ChevronRight, Search, ChevronDown } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>('LIST');
+  const [view, setView] = useState<ViewState>('DASHBOARD');
   const [attachments, setAttachments] = useState<Attachment[]>(INITIAL_ATTACHMENTS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,6 +69,12 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (view) {
+      case 'DASHBOARD':
+        return <Dashboard onNavigate={setView} />;
+      case 'REQUIREMENT':
+        return <RequirementView />;
+      case 'APPROVAL':
+        return <ApprovalRecordView />;
       case 'SERIES':
         return <SeriesView />;
       case 'TRANSFER':
@@ -265,8 +274,13 @@ const App: React.FC = () => {
       <div className="flex-1 flex flex-col lg:pl-64 transition-all">
         <Header />
         
-        <main className="flex-1 p-4 lg:p-8 mt-16 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-4 lg:p-6 mt-16 overflow-y-auto overflow-x-hidden">
+          {/* Dynamic Width Container based on View */}
+          <div className={`mx-auto transition-all duration-300 ${
+            view === 'INVENTORY' || view === 'STOCKTAKE' || view === 'TRANSFER' || view === 'DASHBOARD' || view === 'REQUIREMENT' || view === 'APPROVAL'
+              ? 'max-w-full px-2' 
+              : 'max-w-7xl'
+          }`}>
             {renderContent()}
           </div>
         </main>

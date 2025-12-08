@@ -44,6 +44,12 @@ export enum TransferStatus {
   CANCELLED = '已取消'
 }
 
+export enum RequirementStatus {
+  APPROVED = '审批通过',
+  ORDERED = '已下单',
+  CANCELLED = '已取消'
+}
+
 export interface InventoryHistoryRecord {
   id: string;
   inventoryId: string; // Link to InventoryItem
@@ -75,6 +81,7 @@ export interface Attachment {
 export interface InventoryItem {
   id: string;
   batchCode: string; // 批次码
+  factoryCode?: string; // 原厂编码
   attachmentName: string; // 属具名称
   category: AttachmentCategory; // 类目
   firstInboundDate: string; // 首次入库日期
@@ -143,6 +150,19 @@ export interface TransferOrder {
   items: TransferItem[];
 }
 
+export interface RequirementOrder {
+  id: string;
+  requestNumber: string; // 采购申请单号 SSQ...
+  quantity: number; // 申请数量
+  equipmentInfo: string; // 设备信息
+  status: RequirementStatus; // 申请状态
+  requiredDate: string; // 要求到货日期
+  deliveryLocation: string; // 收货地
+  requestStore: string; // 申请门店
+  receiveStore: string; // 收货门店
+  receiveWarehouse: string; // 收货仓库
+}
+
 export interface SeriesParameter {
   id: string;
   name: string; // 字段名称
@@ -179,4 +199,17 @@ export interface Series {
   keyParameter?: string; // 关键参数名称
 }
 
-export type ViewState = 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE' | 'TRANSFER' | 'SERIES';
+export interface ApprovalRecord {
+  id: string;
+  title: string;
+  approvalNumber: string; // 审批单号
+  businessType: string; // 业务类型
+  businessNumber: string; // 业务单号
+  status: string; // 状态
+  tenant: string; // 租户
+  submitter: string; // 提交人
+  submitTime: string; // 提交时间
+  startTime: string; // 开始审核时间
+}
+
+export type ViewState = 'DASHBOARD' | 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE' | 'TRANSFER' | 'SERIES' | 'REQUIREMENT' | 'APPROVAL';
