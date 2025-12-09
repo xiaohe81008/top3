@@ -1,5 +1,6 @@
 
-import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus, Series, RequirementOrder, RequirementStatus, ApprovalRecord } from './types';
+
+import { Attachment, AttachmentCategory, AttachmentStatus, InventoryItem, InventorySource, InventoryHistoryRecord, InventoryHistoryType, InventoryStatus, StocktakeOrder, StocktakeStatus, TransferOrder, TransferStatus, Series, RequirementOrder, RequirementStatus, ApprovalRecord, ApprovalDetail } from './types';
 
 export const INITIAL_ATTACHMENTS: Attachment[] = [
   {
@@ -693,3 +694,70 @@ export const MOCK_APPROVAL_RECORDS: ApprovalRecord[] = [
     startTime: '2025-12-06 17:21:55'
   }
 ];
+
+export const MOCK_APPROVAL_DETAIL: ApprovalDetail = {
+  id: '1',
+  recordId: '1',
+  title: '设备采购申请',
+  submitter: '张光继',
+  submitTime: '2025-12-08 20:10:55',
+  printId: '2025120820105550398',
+  deliveryLocation: '合同项目场地-湖南省邵阳市邵东市黑田铺镇湖南省五阳塑胶制品有限公司',
+  receiveWarehouse: '叉车-湘赣区域/南昌叉车服务中心/南昌叉车仓',
+  totalCount: 1,
+  requiredDate: '2025-12-18',
+  items: [
+    {
+      id: 'i1',
+      name: '电动平衡重-3500千克-电动',
+      quantity: 1,
+      config: '4号, CPD35-EMT (090402) 二节5米门架, 80V/450AH电池, 200A充电机, 四联阀带调距叉, 1220mm货叉。实心胎。'
+    }
+  ],
+  timeline: [
+    {
+      id: 'n1',
+      role: '忻云(张光继)',
+      name: '忻云(张光继)',
+      status: 'INITIATED',
+      statusLabel: '发起申请',
+      time: '12-08 20:10'
+    },
+    {
+      id: 'n2',
+      role: '方海 (1)',
+      name: '方海 (1)',
+      status: 'APPROVED',
+      statusLabel: '已通过',
+      time: '12-08 22:38',
+      duration: '2小时'
+    },
+    {
+      id: 'n3',
+      role: '区域经理 (2)',
+      name: '区域经理 (2)',
+      status: 'APPROVED',
+      statusLabel: '已通过',
+      time: '12-08 22:39',
+      duration: '16秒'
+    },
+    {
+      id: 'n4',
+      role: '沈成意 (1)',
+      name: '沈成意 (1)',
+      status: 'APPROVED',
+      statusLabel: '已通过',
+      time: '12-09 08:28',
+      duration: '9小时'
+    },
+    {
+      id: 'n5',
+      role: '六一',
+      name: '六一',
+      status: 'PROCESSING',
+      statusLabel: '审批中',
+      time: '',
+      isCurrent: true
+    }
+  ]
+};

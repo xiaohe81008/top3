@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Series, SeriesParameter, SeriesAttachment } from '../types';
 import { INITIAL_SERIES, ATTACHMENT_CATEGORIES } from '../constants';
@@ -564,10 +563,10 @@ export const SeriesView: React.FC = () => {
                             <tr>
                                 <th className="px-4 py-3 border-b border-slate-200">序号</th>
                                 <th className="px-4 py-3 border-b border-slate-200">属具名称</th>
-                                <th className="px-4 py-3 border-b border-slate-200">属具分类</th>
+                                {/* Removed 'Attachment Category' column here */}
                                 <th className="px-4 py-3 border-b border-slate-200">关联物料类目</th>
                                 <th className="px-4 py-3 border-b border-slate-200">选择项枚举值</th>
-                                <th className="px-4 py-3 border-b border-slate-200">生效状态</th>
+                                {/* Removed 'Effective Status' column here */}
                                 <th className="px-4 py-3 border-b border-slate-200 text-right">操作</th>
                             </tr>
                         </thead>
@@ -577,23 +576,11 @@ export const SeriesView: React.FC = () => {
                                     <tr key={att.id} className="hover:bg-slate-50">
                                         <td className="px-4 py-3 text-slate-500">{idx + 1}</td>
                                         <td className="px-4 py-3 font-medium text-slate-800">{att.name}</td>
-                                        <td className="px-4 py-3 text-slate-600">{att.category}</td>
+                                        {/* Removed 'Attachment Category' cell here */}
                                         <td className="px-4 py-3 text-slate-600">{att.materialCategory || '--'}</td>
                                         <td className="px-4 py-3 text-slate-600 truncate max-w-[150px]">{att.options || '--'}</td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${att.status === '生效' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                                <span className="text-slate-700">{att.status}</span>
-                                            </div>
-                                        </td>
+                                        {/* Removed 'Effective Status' cell here */}
                                         <td className="px-4 py-3 text-right space-x-3">
-                                            <button 
-                                                type="button"
-                                                onClick={() => toggleAttachmentStatus(att.id)}
-                                                className="text-blue-600 hover:underline text-xs"
-                                            >
-                                                {att.status === '生效' ? '失效' : '生效'}
-                                            </button>
                                             <button 
                                                 type="button"
                                                 onClick={() => removeAttachment(att.id)}
@@ -606,7 +593,7 @@ export const SeriesView: React.FC = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                                    <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
                                         暂无属具信息，请点击上方按钮添加
                                     </td>
                                 </tr>

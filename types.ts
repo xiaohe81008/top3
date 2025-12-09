@@ -1,4 +1,5 @@
 
+
 export enum AttachmentCategory {
   FORK = '货叉型属具',
   CLAMP = '夹持类属具'
@@ -210,6 +211,47 @@ export interface ApprovalRecord {
   submitter: string; // 提交人
   submitTime: string; // 提交时间
   startTime: string; // 开始审核时间
+}
+
+export interface ApprovalTimelineNode {
+  id: string;
+  role: string;
+  name: string; // e.g. "忻云(张光继)"
+  status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'INITIATED' | 'PROCESSING'; // "已通过", "审批中"
+  statusLabel: string; // "已通过", "发起申请"
+  time: string;
+  duration?: string; // "耗时: 12小时"
+  avatar?: string; // or just initial
+  comments?: string;
+  isCurrent?: boolean;
+}
+
+export interface ApprovalDetailItem {
+  id: string;
+  name: string;
+  quantity: number;
+  config: string; // The long configuration string
+}
+
+export interface ApprovalDetail {
+  id: string; // links to ApprovalRecord.id
+  recordId: string;
+  title: string;
+  
+  // Header Info
+  submitter: string;
+  submitTime: string;
+  printId: string; // "2025120820105550398"
+
+  // Application Info Section
+  deliveryLocation: string;
+  receiveWarehouse: string;
+  totalCount: number;
+  requiredDate: string;
+
+  items: ApprovalDetailItem[];
+  
+  timeline: ApprovalTimelineNode[];
 }
 
 export type ViewState = 'DASHBOARD' | 'LIST' | 'DETAIL' | 'EDIT' | 'CREATE' | 'INVENTORY' | 'STOCKTAKE' | 'TRANSFER' | 'SERIES' | 'REQUIREMENT' | 'APPROVAL';
