@@ -2,9 +2,320 @@
 import React, { useState, useMemo } from 'react';
 import { MOCK_REQUIREMENT_ORDERS } from '../constants';
 import { RequirementStatus, RequirementOrder } from '../types';
-import { Search, ChevronDown, CheckSquare, Square, Filter, RefreshCw, PlusCircle, XCircle, ChevronLeft, ChevronRight, FileText, Plus, X, User, MapPin, Calendar, Clipboard, Loader2, Settings, Battery, Zap, Ruler } from 'lucide-react';
+import { Search, ChevronDown, CheckSquare, Square, Filter, RefreshCw, PlusCircle, XCircle, ChevronLeft, ChevronRight, FileText, Plus, X, User, MapPin, Calendar, Clipboard, Loader2, Settings, Battery, Zap, Ruler, Copy, Inbox, Edit2, CheckCircle, Clock, Tag, CornerDownRight, Save } from 'lucide-react';
+
+// --- Types for Config Modal ---
+type ConfigOption = {
+  label: string;
+  value: string;
+  subOptions?: ConfigOption[];
+  subSelectionType?: 'single' | 'multi';
+};
+
+type ConfigGroup = {
+  category: string;
+  type: 'single' | 'multi';
+  options: ConfigOption[];
+};
+
+interface ConfigEditModalProps {
+  item: { id: string; name: string; config: string };
+  onClose: () => void;
+  onSave: (id: string, newConfig: string) => void;
+}
+
+// --- ConfigEditModal Component (Ported from ApprovalRecordView) ---
+const ConfigEditModal: React.FC<ConfigEditModalProps> = ({ item, onClose, onSave }) => {
+  const [configText, setConfigText] = useState(item.config);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Configuration definitions
+  const configGroups: ConfigGroup[] = [
+    {
+      category: '门架 (单选)',
+      type: 'single',
+      options: [
+        { label: '二节3米', value: '二节3米门架' },
+        { label: '二节4米', value: '二节4米门架' },
+        { label: '二节4.5米', value: '二节4.5米门架' },
+        { label: '三节4.5米', value: '三节4.5米门架' },
+        { label: '三节4.8米', value: '三节4.8米门架' }
+      ]
+    },
+    {
+      category: '电池 (单选)',
+      type: 'single',
+      options: [
+        { label: '48V/450AH', value: '48V/450AH电池' },
+        { label: '80V/500AH', value: '80V/500AH电池' },
+        { label: '80V/450AH', value: '80V/450AH电池' },
+        { label: '免维护', value: '免维护电池' }
+      ]
+    },
+    {
+      category: '轮胎 (单选)',
+      type: 'single',
+      options: [
+        { label: '实心胎', value: '实心胎' },
+        { label: '充气胎', value: '充气胎' },
+        { label: '无痕', value: '无痕实心胎' }
+      ]
+    },
+    {
+      category: '属具 (多选)',
+      type: 'multi',
+      options: [
+        { 
+          label: '侧移器', 
+          value: '侧移器',
+          subSelectionType: 'single',
+          subOptions: [
+            { label: '1220mm', value: '1220mm' },
+            { label: '1520mm', value: '1520mm' },
+            { label: '1630mm', value: '1630mm' }
+          ]
+        },
+        { 
+          label: '调距叉', 
+          value: '调距叉',
+          subSelectionType: 'single',
+          subOptions: [
+            { label: '1070mm', value: '1070mm' },
+            { label: '1150mm', value: '1150mm' }
+          ]
+        },
+        { 
+            label: '纸卷夹', 
+            value: '纸卷夹',
+            subOptions: [
+                { label: '1300mm', value: '1300mm' },
+                { label: '1500mm', value: '1500mm' }
+            ]
+        },
+        { label: '软包夹', value: '软包夹' }
+      ]
+    }
+  ];
+
+  // Helper to safely remove text
+  const removeText = (fullText: string, target: string) => {
+    let newText = fullText.replace(target, '');
+    // Clean up double separators
+    newText = newText.replace(/([,，])\s*[,，]/g, '$1');
+    // Clean up leading/trailing separators
+    newText = newText.replace(/^\s*[,，]\s*/, '').replace(/\s*[,，]\s*$/, '');
+    return newText;
+  };
+
+  // Helper to safely add text
+  const addText = (fullText: string, target: string) => {
+    const trimmed = fullText.trim();
+    const separator = trimmed.length > 0 && !/[，,。;；.]$/.test(trimmed) ? '，' : '';
+    return trimmed + separator + target;
+  };
+
+  const isSelected = (text: string) => configText.includes(text);
+
+  const handleOptionClick = (group: ConfigGroup, option: ConfigOption) => {
+    setConfigText(prev => {
+      let newText = prev;
+
+      // 1. Single Select Logic: Remove siblings
+      if (group.type === 'single') {
+        group.options.forEach(opt => {
+          if (opt.value !== option.value && newText.includes(opt.value)) {
+            newText = removeText(newText, opt.value);
+          }
+        });
+      }
+
+      // 2. Toggle Target
+      if (newText.includes(option.value)) {
+        // Removing
+        newText = removeText(newText, option.value);
+        // Also remove any of its sub-options if present
+        if (option.subOptions) {
+          option.subOptions.forEach(sub => {
+            if (newText.includes(sub.value)) {
+              newText = removeText(newText, sub.value);
+            }
+          });
+        }
+      } else {
+        // Adding
+        newText = addText(newText, option.value);
+      }
+
+      return newText;
+    });
+  };
+
+  const handleSubOptionClick = (parentOption: ConfigOption, subOption: ConfigOption) => {
+    setConfigText(prev => {
+      let newText = prev;
+      
+      // If parent allows only single sub-option, remove siblings
+      if (parentOption.subSelectionType === 'single' && parentOption.subOptions) {
+         parentOption.subOptions.forEach(opt => {
+             if (opt.value !== subOption.value && newText.includes(opt.value)) {
+                 newText = removeText(newText, opt.value);
+             }
+         });
+      }
+
+      if (newText.includes(subOption.value)) {
+        newText = removeText(newText, subOption.value);
+      } else {
+        newText = addText(newText, subOption.value);
+      }
+      return newText;
+    });
+  };
+
+  const handleSave = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      onSave(item.id, configText);
+      setIsSaving(false);
+      onClose();
+    }, 600);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 transform transition-all scale-100">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800">修改配置信息</h3>
+            <p className="text-xs text-slate-500 mt-0.5">{item.name}</p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+          
+          {/* Editor - Read Only Display */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-bold text-slate-700">配置内容预览</label>
+            </div>
+            <div className="w-full h-32 p-4 border border-slate-200 rounded-lg text-sm text-slate-600 leading-relaxed bg-slate-50 overflow-y-auto font-mono">
+                {configText || <span className="text-slate-400">暂无配置内容...</span>}
+            </div>
+          </div>
+
+          {/* Quick Select */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-4">
+              <Tag size={16} className="text-blue-500" />
+              <span>快捷配置选项</span>
+            </label>
+            <div className="grid grid-cols-1 gap-4">
+              {configGroups.map((group) => (
+                <div key={group.category} className="flex flex-col border-b border-slate-50 pb-4 last:border-0 last:pb-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                    <span className="text-xs font-bold text-slate-500 mt-2 w-20 flex-shrink-0">{group.category}</span>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                      {group.options.map((opt) => {
+                        const active = isSelected(opt.value);
+                        return (
+                          <div key={opt.value} className="flex flex-col gap-1">
+                            <button
+                              onClick={() => handleOptionClick(group, opt)}
+                              className={`px-3 py-1.5 text-xs rounded-md border transition-all duration-200 ${
+                                active
+                                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                            
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Expanded Sub-options Area */}
+                  {group.type === 'multi' && group.options.some(opt => isSelected(opt.value) && opt.subOptions) && (
+                      <div className="mt-2 ml-0 sm:ml-24 bg-slate-50 rounded-lg border border-slate-100 p-3 space-y-3">
+                          {group.options.map(opt => {
+                              if (!isSelected(opt.value) || !opt.subOptions) return null;
+                              return (
+                                  <div key={opt.value + '-subs'} className="flex items-center gap-2 animate-in slide-in-from-top-1 duration-200">
+                                      <div className="flex items-center gap-1 text-xs font-semibold text-blue-600 w-20 flex-shrink-0">
+                                         <CornerDownRight size={12} />
+                                         {opt.label}参数:
+                                      </div>
+                                      <div className="flex flex-wrap gap-2">
+                                          {opt.subOptions.map(sub => {
+                                              const subActive = isSelected(sub.value);
+                                              return (
+                                                  <button
+                                                      key={sub.value}
+                                                      onClick={() => handleSubOptionClick(opt, sub)}
+                                                      className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                                                          subActive
+                                                          ? 'bg-blue-100 text-blue-700 border-blue-200 font-medium'
+                                                          : 'bg-white text-slate-500 border-slate-200 hover:border-blue-200'
+                                                      }`}
+                                                  >
+                                                      {sub.label}
+                                                  </button>
+                                              )
+                                          })}
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-md transition-colors text-sm flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isSaving ? (
+                <>
+                 <RefreshCw size={16} className="animate-spin" /> 保存中
+                </>
+            ) : (
+                <>
+                 <Save size={16} /> 保存配置
+                </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const RequirementView: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'LIST' | 'DETAIL'>('LIST');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orders, setOrders] = useState<RequirementOrder[]>(MOCK_REQUIREMENT_ORDERS);
   const [activeTab, setActiveTab] = useState<'PENDING' | 'ORDERED' | 'ALL'>('PENDING');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -49,7 +360,153 @@ export const RequirementView: React.FC = () => {
       setCreationOrder(null);
   };
 
-  return (
+  const handleOrderClick = (id: string) => {
+      setSelectedOrderId(id);
+      setViewMode('DETAIL');
+  };
+
+  const handleBackToList = () => {
+      setViewMode('LIST');
+      setSelectedOrderId(null);
+  };
+
+  // --- Detail View Renderer ---
+  const renderDetail = () => {
+      const order = orders.find(o => o.id === selectedOrderId);
+      if (!order) return null;
+
+      // Mock Data for Detail View to match the screenshot fields
+      const detail = {
+          applicant: '孙贤明',
+          applyTime: '2025-12-09 15:15:37',
+          region: '高机销售管理部',
+          storeType: '合同项目场地',
+          contractNumber: '5101022512026',
+          receiver: '胡楚林',
+          approvalTime: '2025-12-09 16:06:13',
+          remarks: '--',
+          // Equipment specific mocks
+          items: [
+              {
+                  id: '1',
+                  category: '高空作业设备',
+                  series: '柴油越野剪叉',
+                  keyParam: '平台高度:16米',
+                  powerSource: '柴动',
+                  quantity: order.quantity,
+                  config: '--'
+              }
+          ]
+      };
+
+      const InfoItem = ({ label, value, fullWidth = false }: { label: string, value: string | React.ReactNode, fullWidth?: boolean }) => (
+          <div className={`flex flex-col gap-1 ${fullWidth ? 'col-span-1 md:col-span-3' : ''}`}>
+              <span className="text-slate-500 text-sm">{label}:</span>
+              <span className="text-slate-900 font-medium text-sm break-words">{value}</span>
+          </div>
+      );
+
+      return (
+        <div className="fixed top-16 left-0 lg:left-64 right-0 bottom-0 bg-slate-50 z-30 flex flex-col overflow-y-auto">
+            {/* Header Bar */}
+            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0 sticky top-0 z-40">
+                <div className="flex items-center gap-4">
+                    <button onClick={handleBackToList} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
+                        <ChevronLeft size={20} />
+                    </button>
+                    <span className="font-bold text-slate-800 text-lg">需求单详情</span>
+                </div>
+            </div>
+
+            <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+                 {/* Section: Basic Info */}
+                 <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200 relative">
+                    {/* Header Row */}
+                    <div className="flex justify-between items-start mb-8">
+                        <h3 className="font-bold text-slate-900 text-lg">基本信息</h3>
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors shadow-sm">
+                            审批记录
+                        </button>
+                    </div>
+
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-y-8 gap-x-12">
+                        <InfoItem label="采购申请单号" value={order.requestNumber} />
+                        <InfoItem label="申请人" value={detail.applicant} />
+                        <InfoItem label="申请时间" value={detail.applyTime} />
+
+                        <InfoItem label="所属区域" value={detail.region} />
+                        <InfoItem label="采购门店" value="高米臂车服务中心" />
+                        <InfoItem label="收货地类型" value={detail.storeType} />
+
+                        <InfoItem label="收货门店" value="青白江服务中心" />
+                        <InfoItem label="收货仓库" value="青白江仓" />
+                        <InfoItem label="详细地址" value={order.deliveryLocation} /> {/* Assumed mapped */}
+
+                        <InfoItem label="进场合同编号" value={detail.contractNumber} />
+                        <InfoItem label="要求到货日期" value={order.requiredDate} />
+                        <div className="hidden md:block"></div> {/* Spacer to match layout if needed, or let flow */}
+
+                        <InfoItem label="申请状态" value={order.status} />
+                        <InfoItem label="授权接车人" value={detail.receiver} />
+                        <div className="hidden md:block"></div>
+
+                        <InfoItem label="备注" value={detail.remarks} />
+                        <InfoItem label="审批通过时间" value={detail.approvalTime} />
+                    </div>
+                 </div>
+
+                 {/* Section: Equipment Info */}
+                 <div className="bg-white rounded-lg p-8 shadow-sm border border-slate-200">
+                    <h3 className="font-bold text-slate-900 text-lg mb-6">设备信息</h3>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left border-collapse">
+                            <thead className="bg-slate-50 text-slate-700 font-semibold border-t border-b border-slate-200">
+                                <tr>
+                                    <th className="px-6 py-4 w-20">序号</th>
+                                    <th className="px-6 py-4">设备类别</th>
+                                    <th className="px-6 py-4">设备系列</th>
+                                    <th className="px-6 py-4">关键参数</th>
+                                    <th className="px-6 py-4">动力源</th>
+                                    <th className="px-6 py-4">数量</th>
+                                    <th className="px-6 py-4">配置要求</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {detail.items.map((item, idx) => (
+                                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4 text-slate-500">{idx + 1}</td>
+                                        <td className="px-6 py-4 text-slate-800">{item.category}</td>
+                                        <td className="px-6 py-4 text-slate-800">{item.series}</td>
+                                        <td className="px-6 py-4 text-slate-800">{item.keyParam}</td>
+                                        <td className="px-6 py-4 text-slate-800">{item.powerSource}</td>
+                                        <td className="px-6 py-4 text-slate-800">{item.quantity}</td>
+                                        <td className="px-6 py-4 text-slate-500">{item.config}</td>
+                                    </tr>
+                                ))}
+                                {/* Adding a dummy row to show table structure if only 1 item */}
+                                {detail.items.length === 1 && (
+                                     <tr className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4 text-slate-500">2</td>
+                                        <td className="px-6 py-4 text-slate-800">高空作业设备</td>
+                                        <td className="px-6 py-4 text-slate-800">柴油越野剪叉</td>
+                                        <td className="px-6 py-4 text-slate-800">平台高度:16米</td>
+                                        <td className="px-6 py-4 text-slate-800">柴动</td>
+                                        <td className="px-6 py-4 text-slate-800">2</td>
+                                        <td className="px-6 py-4 text-slate-500">--</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                 </div>
+            </div>
+        </div>
+      );
+  }
+
+  const renderList = () => (
     <div className="flex flex-col h-[calc(100vh-80px)] space-y-4">
       
       {/* 1. Header Tabs */}
@@ -160,7 +617,9 @@ export const RequirementView: React.FC = () => {
                             </td>
                             <td className="px-4 py-3 text-slate-500">{index + 1}</td>
                             <td className="px-4 py-3">
-                                <a href="#" className="text-blue-600 hover:underline font-medium">{item.requestNumber}</a>
+                                <button onClick={() => handleOrderClick(item.id)} className="text-blue-600 hover:underline font-medium text-left">
+                                    {item.requestNumber}
+                                </button>
                             </td>
                             <td className="px-4 py-3 text-slate-800">{item.quantity}</td>
                             <td className="px-4 py-3 text-slate-800 truncate max-w-[250px]" title={item.equipmentInfo}>
@@ -234,21 +693,14 @@ export const RequirementView: React.FC = () => {
       )}
     </div>
   );
+
+  return viewMode === 'LIST' ? renderList() : renderDetail();
 };
 
 interface CreateOrderModalProps {
     order: RequirementOrder;
     onClose: () => void;
     onSubmit: (id: string, config: string) => void;
-}
-
-// Helper interface for structured configuration
-interface StructuredConfig {
-    model: string;
-    battery: string;
-    charger: string;
-    legs: string;
-    additionalOptions: string[];
 }
 
 const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ order, onClose, onSubmit }) => {
@@ -261,68 +713,25 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ order, onClose, onS
         remarks: '--'
     };
 
-    // Initialize structured configuration state
-    const [configData, setConfigData] = useState<StructuredConfig>({
-        model: '(17号) CBD30-461',
-        battery: '24V300Ah',
-        charger: '100A充电器',
-        legs: '685*2200支腿',
-        additionalOptions: [
-            '加装踏板围挡',
-            '充电口改在外侧',
-            '电池盖板左侧储物桶改为夹子',
-            '速度调低8公里/小时, 短手柄'
-        ]
-    });
-
-    const [isEditingConfig, setIsEditingConfig] = useState(false);
-    const [tempConfigData, setTempConfigData] = useState<StructuredConfig>(configData);
+    // State for configuration text
+    const [configText, setConfigText] = useState<string>(
+        '(17号) CBD30-461, 24V300Ah, 100A充电器, 685*2200支腿 (1.加装踏板围挡 2.充电口改在外侧 3.电池盖板左侧储物桶改为夹子 4.速度调低8公里/小时, 短手柄)'
+    );
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Helper to generate text representation
-    const getConfigText = (data: StructuredConfig) => {
-        const optionsText = data.additionalOptions.length > 0 
-            ? `(${data.additionalOptions.map((opt, idx) => `${idx + 1}.${opt}`).join(' ')})`
-            : '';
-        return `${data.model}, ${data.battery}, ${data.charger}, ${data.legs} ${optionsText}`;
+    const handleOpenConfigModal = () => {
+        setIsConfigModalOpen(true);
     };
 
-    const handleEditConfig = () => {
-        setTempConfigData({ ...configData });
-        setIsEditingConfig(true);
-    };
-
-    const handleSaveConfig = () => {
-        setConfigData(tempConfigData);
-        setIsEditingConfig(false);
-    };
-
-    const handleCancelEditConfig = () => {
-        setIsEditingConfig(false);
-    };
-
-    const handleOptionChange = (index: number, value: string) => {
-        const newOptions = [...tempConfigData.additionalOptions];
-        newOptions[index] = value;
-        setTempConfigData({ ...tempConfigData, additionalOptions: newOptions });
-    };
-
-    const handleAddOption = () => {
-        setTempConfigData({ 
-            ...tempConfigData, 
-            additionalOptions: [...tempConfigData.additionalOptions, ''] 
-        });
-    };
-
-    const handleRemoveOption = (index: number) => {
-        const newOptions = tempConfigData.additionalOptions.filter((_, i) => i !== index);
-        setTempConfigData({ ...tempConfigData, additionalOptions: newOptions });
+    const handleSaveConfig = (id: string, newConfig: string) => {
+        setConfigText(newConfig);
     };
 
     const handleSubmitClick = () => {
         setIsSubmitting(true);
         setTimeout(() => {
-            onSubmit(order.id, getConfigText(configData));
+            onSubmit(order.id, configText);
             setIsSubmitting(false);
         }, 1000);
     };
@@ -443,120 +852,20 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ order, onClose, onS
                         </div>
 
                         <div className="flex items-center gap-2 mb-4">
-                            {!isEditingConfig ? (
-                                <button 
-                                    onClick={handleEditConfig}
-                                    className="text-xs px-3 py-1 border border-blue-600 text-blue-600 rounded bg-white hover:bg-blue-50 transition-colors"
-                                >
-                                    修改配置
-                                </button>
-                            ) : (
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={handleSaveConfig}
-                                        className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                                    >
-                                        保存配置
-                                    </button>
-                                    <button 
-                                        onClick={handleCancelEditConfig}
-                                        className="text-xs px-3 py-1 border border-slate-300 text-slate-600 rounded bg-white hover:bg-slate-50 transition-colors"
-                                    >
-                                        取消
-                                    </button>
-                                </div>
-                            )}
+                            <button 
+                                onClick={handleOpenConfigModal}
+                                className="text-xs px-3 py-1 border border-blue-600 text-blue-600 rounded bg-white hover:bg-blue-50 transition-colors"
+                            >
+                                修改配置
+                            </button>
                         </div>
 
                         {/* Config Details */}
                         <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm mb-6">
-                            {isEditingConfig ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                                                <Settings size={14} /> 型号规格
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                className="w-full text-sm border border-slate-300 rounded px-2.5 py-1.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                                value={tempConfigData.model}
-                                                onChange={(e) => setTempConfigData({...tempConfigData, model: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                                                <Battery size={14} /> 电池参数
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                className="w-full text-sm border border-slate-300 rounded px-2.5 py-1.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                                value={tempConfigData.battery}
-                                                onChange={(e) => setTempConfigData({...tempConfigData, battery: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                                                <Zap size={14} /> 充电器
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                className="w-full text-sm border border-slate-300 rounded px-2.5 py-1.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                                value={tempConfigData.charger}
-                                                onChange={(e) => setTempConfigData({...tempConfigData, charger: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                                                <Ruler size={14} /> 支腿规格
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                className="w-full text-sm border border-slate-300 rounded px-2.5 py-1.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                                value={tempConfigData.legs}
-                                                onChange={(e) => setTempConfigData({...tempConfigData, legs: e.target.value})}
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="pt-4 border-t border-slate-100">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">加装项 / 改装要求</label>
-                                            <button 
-                                                onClick={handleAddOption}
-                                                className="text-xs text-blue-600 hover:bg-blue-50 px-2 py-1 rounded flex items-center gap-1"
-                                            >
-                                                <Plus size={12} /> 添加条目
-                                            </button>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {tempConfigData.additionalOptions.map((opt, idx) => (
-                                                <div key={idx} className="flex gap-2 items-center">
-                                                    <span className="text-xs text-slate-400 font-mono w-4">{idx + 1}.</span>
-                                                    <input 
-                                                        type="text"
-                                                        className="flex-1 text-sm border border-slate-300 rounded px-2.5 py-1.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                                                        value={opt}
-                                                        onChange={(e) => handleOptionChange(idx, e.target.value)}
-                                                        placeholder="输入具体的配置说明..."
-                                                    />
-                                                    <button 
-                                                        onClick={() => handleRemoveOption(idx)}
-                                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded transition-colors"
-                                                    >
-                                                        <X size={14} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-slate-700 leading-relaxed">
-                                    <span className="font-bold text-slate-900 block mb-2">配置：</span>
-                                    {getConfigText(configData)}
-                                </p>
-                            )}
+                            <p className="text-sm text-slate-700 leading-relaxed font-mono">
+                                <span className="font-bold text-slate-900 block mb-2 font-sans">配置：</span>
+                                {configText}
+                            </p>
                         </div>
 
                         {/* Add Device Area */}
@@ -593,6 +902,19 @@ const CreateOrderModal: React.FC<CreateOrderModalProps> = ({ order, onClose, onS
                     </button>
                 </div>
             </div>
+
+            {/* Render Config Edit Modal */}
+            {isConfigModalOpen && (
+                <ConfigEditModal 
+                    item={{
+                        id: order.id,
+                        name: '电动托盘车 - 3000 kg',
+                        config: configText
+                    }}
+                    onClose={() => setIsConfigModalOpen(false)}
+                    onSave={handleSaveConfig}
+                />
+            )}
         </div>
     );
 }
